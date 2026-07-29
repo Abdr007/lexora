@@ -1,0 +1,1226 @@
+{
+  "no_rerank": [
+    {
+      "id": "a001",
+      "question": "How much end-of-service gratuity is a full-time foreign worker owed after six years?",
+      "answerable": true,
+      "gold": "uae-labour-law#art51",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 102.9
+    },
+    {
+      "id": "a002",
+      "question": "What is the longest probationary period an employer may impose?",
+      "answerable": true,
+      "gold": "uae-labour-law#art9",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.6
+    },
+    {
+      "id": "a003",
+      "question": "How many normal working hours may a worker be required to work per day?",
+      "answerable": true,
+      "gold": "uae-labour-law#art17",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 6.0
+    },
+    {
+      "id": "a004",
+      "question": "How is overtime pay calculated?",
+      "answerable": true,
+      "gold": "uae-labour-law#art19",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 3.9
+    },
+    {
+      "id": "a005",
+      "question": "How many days of maternity leave is a female worker entitled to?",
+      "answerable": true,
+      "gold": "uae-labour-law#art30",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.8
+    },
+    {
+      "id": "a006",
+      "question": "How much annual leave does a worker accrue?",
+      "answerable": true,
+      "gold": "uae-labour-law#art29",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 8.4
+    },
+    {
+      "id": "a007",
+      "question": "What sick leave is a worker entitled to after probation?",
+      "answerable": true,
+      "gold": "uae-labour-law#art31",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.6
+    },
+    {
+      "id": "a008",
+      "question": "What notice period applies when either party terminates an employment contract?",
+      "answerable": true,
+      "gold": "uae-labour-law#art43",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.6
+    },
+    {
+      "id": "a009",
+      "question": "When may an employer dismiss a worker without notice?",
+      "answerable": true,
+      "gold": "uae-labour-law#art44",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.0
+    },
+    {
+      "id": "a010",
+      "question": "When can a worker resign without giving notice and keep their entitlements?",
+      "answerable": true,
+      "gold": "uae-labour-law#art45",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 6.1
+    },
+    {
+      "id": "a011",
+      "question": "What counts as unlawful termination of a worker's service?",
+      "answerable": true,
+      "gold": "uae-labour-law#art47",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.3
+    },
+    {
+      "id": "a012",
+      "question": "What is the minimum age for employment?",
+      "answerable": true,
+      "gold": "uae-labour-law#art5",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.7
+    },
+    {
+      "id": "a013",
+      "question": "Can an employer enforce a non-competition clause after employment ends?",
+      "answerable": true,
+      "gold": "uae-labour-law#art10",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.7
+    },
+    {
+      "id": "a014",
+      "question": "Is discrimination between workers prohibited?",
+      "answerable": true,
+      "gold": "uae-labour-law#art4",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 3.9
+    },
+    {
+      "id": "a015",
+      "question": "Can an employer deduct money from a worker's wage?",
+      "answerable": true,
+      "gold": "uae-labour-law#art25",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.9
+    },
+    {
+      "id": "a016",
+      "question": "What disciplinary sanctions may an employer impose?",
+      "answerable": true,
+      "gold": "uae-labour-law#art39",
+      "gold_rank": 3,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.4
+    },
+    {
+      "id": "a017",
+      "question": "For how long may an employer suspend a worker pending an investigation?",
+      "answerable": true,
+      "gold": "uae-labour-law#art40",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 6.3
+    },
+    {
+      "id": "a018",
+      "question": "Do workers have to pay court fees to bring a labour claim?",
+      "answerable": true,
+      "gold": "uae-labour-law#art55",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.4
+    },
+    {
+      "id": "a019",
+      "question": "Does an employer need a permit before hiring someone in the UAE?",
+      "answerable": true,
+      "gold": "uae-labour-law#art6",
+      "gold_rank": 3,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.1
+    },
+    {
+      "id": "a020",
+      "question": "Can an employer make a worker hand over their passport?",
+      "answerable": true,
+      "gold": "uae-labour-law#art14",
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.1
+    },
+    {
+      "id": "a021",
+      "question": "What paid leave is available for a death in the family?",
+      "answerable": true,
+      "gold": "uae-labour-law#art32",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.1
+    },
+    {
+      "id": "a022",
+      "question": "Can a worker take unpaid leave?",
+      "answerable": true,
+      "gold": "uae-labour-law#art33",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.6
+    },
+    {
+      "id": "a023",
+      "question": "What happens if a worker abandons their job without a valid reason?",
+      "answerable": true,
+      "gold": "uae-labour-law#art50",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.5
+    },
+    {
+      "id": "a024",
+      "question": "What weekly rest is a worker entitled to?",
+      "answerable": true,
+      "gold": "uae-labour-law#art21",
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 7.7
+    },
+    {
+      "id": "a025",
+      "question": "How long may a worker work continuously before a break?",
+      "answerable": true,
+      "gold": "uae-labour-law#art18",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 6.0
+    },
+    {
+      "id": "a026",
+      "question": "What must an employment contract contain and in how many copies?",
+      "answerable": true,
+      "gold": "uae-labour-law#art8",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.3
+    },
+    {
+      "id": "a027",
+      "question": "What are the recognised patterns of work?",
+      "answerable": true,
+      "gold": "uae-labour-law#art7",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.3
+    },
+    {
+      "id": "a028",
+      "question": "Does the labour law apply to domestic workers?",
+      "answerable": true,
+      "gold": "uae-labour-law#art3",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.5
+    },
+    {
+      "id": "a029",
+      "question": "When must an employer pay a worker's final entitlements after the contract ends?",
+      "answerable": true,
+      "gold": "uae-labour-law#art53",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 6.6
+    },
+    {
+      "id": "a030",
+      "question": "Is there a statutory minimum wage in the UAE private sector?",
+      "answerable": true,
+      "gold": "uae-labour-law#art27",
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.2
+    },
+    {
+      "id": "a031",
+      "question": "How is freelance work defined and does it need a permit?",
+      "answerable": true,
+      "gold": "uae-labour-law#art8",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.2
+    },
+    {
+      "id": "a032",
+      "question": "How much annual leave does a part-time worker get?",
+      "answerable": true,
+      "gold": "uae-labour-law#art18",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.1
+    },
+    {
+      "id": "a033",
+      "question": "How is end-of-service pay worked out for part-time employees?",
+      "answerable": true,
+      "gold": "uae-labour-law#art30",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.4
+    },
+    {
+      "id": "a034",
+      "question": "What conditions make a non-competition clause enforceable?",
+      "answerable": true,
+      "gold": "uae-labour-law#art12",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 6.3
+    },
+    {
+      "id": "a035",
+      "question": "What happens to workers if the employer becomes bankrupt?",
+      "answerable": true,
+      "gold": "uae-labour-law#art25",
+      "gold_rank": 4,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 6.4
+    },
+    {
+      "id": "a036",
+      "question": "What circumstances count as a grave danger allowing a worker to leave?",
+      "answerable": true,
+      "gold": "uae-labour-law#art26",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 7.4
+    },
+    {
+      "id": "a037",
+      "question": "Does a Dubai tenancy contract have to be registered?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art4",
+      "gold_rank": 5,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 7.2
+    },
+    {
+      "id": "a038",
+      "question": "On what grounds can a landlord evict a tenant before the lease expires?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art25",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 6.2
+    },
+    {
+      "id": "a039",
+      "question": "Can a landlord cut off the water or electricity to force a tenant out?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art34",
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.8
+    },
+    {
+      "id": "a040",
+      "question": "What happens if a tenant stays on after the lease term ends?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art6",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.2
+    },
+    {
+      "id": "a041",
+      "question": "Who pays the fees and taxes on a leased property in Dubai?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art22",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.4
+    },
+    {
+      "id": "a042",
+      "question": "Does selling a rented property end the tenant's lease?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art28",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.2
+    },
+    {
+      "id": "a043",
+      "question": "How much notice is needed to change the terms of a Dubai lease on renewal?",
+      "answerable": true,
+      "gold": "dubai-tenancy-amendment#art14",
+      "gold_rank": 4,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.9
+    },
+    {
+      "id": "a044",
+      "question": "How much notice must a landlord give to evict a tenant for personal use?",
+      "answerable": true,
+      "gold": "dubai-tenancy-amendment#art25",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 7.4
+    },
+    {
+      "id": "a045",
+      "question": "By how much can my landlord raise the rent when I renew?",
+      "answerable": true,
+      "gold": "dubai-rent-decree#art1",
+      "gold_rank": 3,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 8.4
+    },
+    {
+      "id": "a046",
+      "question": "How is the average market rent determined for a rent increase?",
+      "answerable": true,
+      "gold": "dubai-rent-decree#art3",
+      "gold_rank": 3,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.3
+    },
+    {
+      "id": "t001",
+      "question": "What is the capital gains tax rate in Singapore?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": null,
+      "latency_ms": 4.8
+    },
+    {
+      "id": "t002",
+      "question": "What are the visa requirements for tourists visiting Japan?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": null,
+      "latency_ms": 4.3
+    },
+    {
+      "id": "t003",
+      "question": "How do I open a corporate bank account in the UAE?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.7
+    },
+    {
+      "id": "t004",
+      "question": "How do I apply for a UAE golden visa?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.7
+    },
+    {
+      "id": "t005",
+      "question": "What is the UAE corporate tax rate for free zone companies?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.1
+    },
+    {
+      "id": "t006",
+      "question": "What does DIFC Employment Law say about end-of-service gratuity?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": null,
+      "latency_ms": 6.2
+    },
+    {
+      "id": "t007",
+      "question": "How do I register a trademark in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.3
+    },
+    {
+      "id": "t008",
+      "question": "What are the rules for short-term holiday home rentals in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 9.1
+    },
+    {
+      "id": "t009",
+      "question": "What is the penalty for speeding on Sheikh Zayed Road?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 5.3
+    },
+    {
+      "id": "t010",
+      "question": "How do I obtain a liquor licence in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.8
+    },
+    {
+      "id": "t011",
+      "question": "What health insurance must an employer provide in Abu Dhabi?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 7.9
+    },
+    {
+      "id": "t012",
+      "question": "What is the notice period under Saudi Arabian labour law?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": null,
+      "latency_ms": 6.7
+    },
+    {
+      "id": "t013",
+      "question": "How are owners association service charges regulated in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.7
+    },
+    {
+      "id": "t014",
+      "question": "What is the process for company liquidation in the DIFC?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": null,
+      "latency_ms": 5.2
+    },
+    {
+      "id": "t015",
+      "question": "Which bank offers the best mortgage rate in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": null,
+      "latency_ms": 4.7
+    }
+  ],
+  "with_rerank": [
+    {
+      "id": "a001",
+      "question": "How much end-of-service gratuity is a full-time foreign worker owed after six years?",
+      "answerable": true,
+      "gold": "uae-labour-law#art51",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 2.896,
+      "latency_ms": 648.9
+    },
+    {
+      "id": "a002",
+      "question": "What is the longest probationary period an employer may impose?",
+      "answerable": true,
+      "gold": "uae-labour-law#art9",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 1.935,
+      "latency_ms": 613.8
+    },
+    {
+      "id": "a003",
+      "question": "How many normal working hours may a worker be required to work per day?",
+      "answerable": true,
+      "gold": "uae-labour-law#art17",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 8.175,
+      "latency_ms": 538.3
+    },
+    {
+      "id": "a004",
+      "question": "How is overtime pay calculated?",
+      "answerable": true,
+      "gold": "uae-labour-law#art19",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 2.404,
+      "latency_ms": 528.0
+    },
+    {
+      "id": "a005",
+      "question": "How many days of maternity leave is a female worker entitled to?",
+      "answerable": true,
+      "gold": "uae-labour-law#art30",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 9.31,
+      "latency_ms": 464.9
+    },
+    {
+      "id": "a006",
+      "question": "How much annual leave does a worker accrue?",
+      "answerable": true,
+      "gold": "uae-labour-law#art29",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 3.385,
+      "latency_ms": 448.9
+    },
+    {
+      "id": "a007",
+      "question": "What sick leave is a worker entitled to after probation?",
+      "answerable": true,
+      "gold": "uae-labour-law#art31",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 6.382,
+      "latency_ms": 564.1
+    },
+    {
+      "id": "a008",
+      "question": "What notice period applies when either party terminates an employment contract?",
+      "answerable": true,
+      "gold": "uae-labour-law#art43",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": 8.473,
+      "latency_ms": 627.2
+    },
+    {
+      "id": "a009",
+      "question": "When may an employer dismiss a worker without notice?",
+      "answerable": true,
+      "gold": "uae-labour-law#art44",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 7.962,
+      "latency_ms": 525.6
+    },
+    {
+      "id": "a010",
+      "question": "When can a worker resign without giving notice and keep their entitlements?",
+      "answerable": true,
+      "gold": "uae-labour-law#art45",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 4.64,
+      "latency_ms": 540.8
+    },
+    {
+      "id": "a011",
+      "question": "What counts as unlawful termination of a worker's service?",
+      "answerable": true,
+      "gold": "uae-labour-law#art47",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 6.373,
+      "latency_ms": 640.8
+    },
+    {
+      "id": "a012",
+      "question": "What is the minimum age for employment?",
+      "answerable": true,
+      "gold": "uae-labour-law#art5",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": -1.184,
+      "latency_ms": 692.8
+    },
+    {
+      "id": "a013",
+      "question": "Can an employer enforce a non-competition clause after employment ends?",
+      "answerable": true,
+      "gold": "uae-labour-law#art10",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 7.311,
+      "latency_ms": 456.3
+    },
+    {
+      "id": "a014",
+      "question": "Is discrimination between workers prohibited?",
+      "answerable": true,
+      "gold": "uae-labour-law#art4",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 7.301,
+      "latency_ms": 512.8
+    },
+    {
+      "id": "a015",
+      "question": "Can an employer deduct money from a worker's wage?",
+      "answerable": true,
+      "gold": "uae-labour-law#art25",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 5.2,
+      "latency_ms": 508.9
+    },
+    {
+      "id": "a016",
+      "question": "What disciplinary sanctions may an employer impose?",
+      "answerable": true,
+      "gold": "uae-labour-law#art39",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 7.05,
+      "latency_ms": 553.3
+    },
+    {
+      "id": "a017",
+      "question": "For how long may an employer suspend a worker pending an investigation?",
+      "answerable": true,
+      "gold": "uae-labour-law#art40",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 8.695,
+      "latency_ms": 626.1
+    },
+    {
+      "id": "a018",
+      "question": "Do workers have to pay court fees to bring a labour claim?",
+      "answerable": true,
+      "gold": "uae-labour-law#art55",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 5.723,
+      "latency_ms": 490.2
+    },
+    {
+      "id": "a019",
+      "question": "Does an employer need a permit before hiring someone in the UAE?",
+      "answerable": true,
+      "gold": "uae-labour-law#art6",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 5.433,
+      "latency_ms": 573.1
+    },
+    {
+      "id": "a020",
+      "question": "Can an employer make a worker hand over their passport?",
+      "answerable": true,
+      "gold": "uae-labour-law#art14",
+      "gold_rank": null,
+      "refused": false,
+      "best_score": 0.389,
+      "latency_ms": 500.9
+    },
+    {
+      "id": "a021",
+      "question": "What paid leave is available for a death in the family?",
+      "answerable": true,
+      "gold": "uae-labour-law#art32",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 1.308,
+      "latency_ms": 613.6
+    },
+    {
+      "id": "a022",
+      "question": "Can a worker take unpaid leave?",
+      "answerable": true,
+      "gold": "uae-labour-law#art33",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 8.628,
+      "latency_ms": 461.4
+    },
+    {
+      "id": "a023",
+      "question": "What happens if a worker abandons their job without a valid reason?",
+      "answerable": true,
+      "gold": "uae-labour-law#art50",
+      "gold_rank": 5,
+      "refused": false,
+      "best_score": 4.686,
+      "latency_ms": 507.3
+    },
+    {
+      "id": "a024",
+      "question": "What weekly rest is a worker entitled to?",
+      "answerable": true,
+      "gold": "uae-labour-law#art21",
+      "gold_rank": null,
+      "refused": false,
+      "best_score": -0.895,
+      "latency_ms": 645.6
+    },
+    {
+      "id": "a025",
+      "question": "How long may a worker work continuously before a break?",
+      "answerable": true,
+      "gold": "uae-labour-law#art18",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 5.82,
+      "latency_ms": 603.4
+    },
+    {
+      "id": "a026",
+      "question": "What must an employment contract contain and in how many copies?",
+      "answerable": true,
+      "gold": "uae-labour-law#art8",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 2.841,
+      "latency_ms": 627.9
+    },
+    {
+      "id": "a027",
+      "question": "What are the recognised patterns of work?",
+      "answerable": true,
+      "gold": "uae-labour-law#art7",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 2.256,
+      "latency_ms": 677.2
+    },
+    {
+      "id": "a028",
+      "question": "Does the labour law apply to domestic workers?",
+      "answerable": true,
+      "gold": "uae-labour-law#art3",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 6.122,
+      "latency_ms": 566.5
+    },
+    {
+      "id": "a029",
+      "question": "When must an employer pay a worker's final entitlements after the contract ends?",
+      "answerable": true,
+      "gold": "uae-labour-law#art53",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 9.241,
+      "latency_ms": 479.8
+    },
+    {
+      "id": "a030",
+      "question": "Is there a statutory minimum wage in the UAE private sector?",
+      "answerable": true,
+      "gold": "uae-labour-law#art27",
+      "gold_rank": null,
+      "refused": false,
+      "best_score": -0.584,
+      "latency_ms": 535.7
+    },
+    {
+      "id": "a031",
+      "question": "How is freelance work defined and does it need a permit?",
+      "answerable": true,
+      "gold": "uae-labour-law#art8",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 5.533,
+      "latency_ms": 632.0
+    },
+    {
+      "id": "a032",
+      "question": "How much annual leave does a part-time worker get?",
+      "answerable": true,
+      "gold": "uae-labour-law#art18",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 5.151,
+      "latency_ms": 554.1
+    },
+    {
+      "id": "a033",
+      "question": "How is end-of-service pay worked out for part-time employees?",
+      "answerable": true,
+      "gold": "uae-labour-law#art30",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 5.015,
+      "latency_ms": 507.2
+    },
+    {
+      "id": "a034",
+      "question": "What conditions make a non-competition clause enforceable?",
+      "answerable": true,
+      "gold": "uae-labour-law#art12",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": 3.768,
+      "latency_ms": 550.1
+    },
+    {
+      "id": "a035",
+      "question": "What happens to workers if the employer becomes bankrupt?",
+      "answerable": true,
+      "gold": "uae-labour-law#art25",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": -0.222,
+      "latency_ms": 647.0
+    },
+    {
+      "id": "a036",
+      "question": "What circumstances count as a grave danger allowing a worker to leave?",
+      "answerable": true,
+      "gold": "uae-labour-law#art26",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 7.79,
+      "latency_ms": 606.5
+    },
+    {
+      "id": "a037",
+      "question": "Does a Dubai tenancy contract have to be registered?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art4",
+      "gold_rank": 5,
+      "refused": false,
+      "best_score": 1.942,
+      "latency_ms": 439.2
+    },
+    {
+      "id": "a038",
+      "question": "On what grounds can a landlord evict a tenant before the lease expires?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art25",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": 6.018,
+      "latency_ms": 435.7
+    },
+    {
+      "id": "a039",
+      "question": "Can a landlord cut off the water or electricity to force a tenant out?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art34",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": -3.574,
+      "latency_ms": 380.8
+    },
+    {
+      "id": "a040",
+      "question": "What happens if a tenant stays on after the lease term ends?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art6",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 4.721,
+      "latency_ms": 393.1
+    },
+    {
+      "id": "a041",
+      "question": "Who pays the fees and taxes on a leased property in Dubai?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art22",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 0.846,
+      "latency_ms": 424.9
+    },
+    {
+      "id": "a042",
+      "question": "Does selling a rented property end the tenant's lease?",
+      "answerable": true,
+      "gold": "dubai-tenancy-law#art28",
+      "gold_rank": 5,
+      "refused": false,
+      "best_score": 2.79,
+      "latency_ms": 423.4
+    },
+    {
+      "id": "a043",
+      "question": "How much notice is needed to change the terms of a Dubai lease on renewal?",
+      "answerable": true,
+      "gold": "dubai-tenancy-amendment#art14",
+      "gold_rank": 5,
+      "refused": false,
+      "best_score": -0.667,
+      "latency_ms": 453.5
+    },
+    {
+      "id": "a044",
+      "question": "How much notice must a landlord give to evict a tenant for personal use?",
+      "answerable": true,
+      "gold": "dubai-tenancy-amendment#art25",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": 2.992,
+      "latency_ms": 451.1
+    },
+    {
+      "id": "a045",
+      "question": "By how much can my landlord raise the rent when I renew?",
+      "answerable": true,
+      "gold": "dubai-rent-decree#art1",
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 1.886,
+      "latency_ms": 365.8
+    },
+    {
+      "id": "a046",
+      "question": "How is the average market rent determined for a rent increase?",
+      "answerable": true,
+      "gold": "dubai-rent-decree#art3",
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": 2.38,
+      "latency_ms": 365.2
+    },
+    {
+      "id": "t001",
+      "question": "What is the capital gains tax rate in Singapore?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -10.946,
+      "latency_ms": 650.6
+    },
+    {
+      "id": "t002",
+      "question": "What are the visa requirements for tourists visiting Japan?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -9.595,
+      "latency_ms": 610.6
+    },
+    {
+      "id": "t003",
+      "question": "How do I open a corporate bank account in the UAE?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -6.091,
+      "latency_ms": 498.3
+    },
+    {
+      "id": "t004",
+      "question": "How do I apply for a UAE golden visa?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": 3.294,
+      "latency_ms": 401.5
+    },
+    {
+      "id": "t005",
+      "question": "What is the UAE corporate tax rate for free zone companies?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -5.643,
+      "latency_ms": 417.1
+    },
+    {
+      "id": "t006",
+      "question": "What does DIFC Employment Law say about end-of-service gratuity?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": 2.113,
+      "latency_ms": 693.9
+    },
+    {
+      "id": "t007",
+      "question": "How do I register a trademark in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -5.416,
+      "latency_ms": 428.4
+    },
+    {
+      "id": "t008",
+      "question": "What are the rules for short-term holiday home rentals in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": -1.089,
+      "latency_ms": 501.5
+    },
+    {
+      "id": "t009",
+      "question": "What is the penalty for speeding on Sheikh Zayed Road?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -4.383,
+      "latency_ms": 597.1
+    },
+    {
+      "id": "t010",
+      "question": "How do I obtain a liquor licence in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -6.011,
+      "latency_ms": 475.6
+    },
+    {
+      "id": "t011",
+      "question": "What health insurance must an employer provide in Abu Dhabi?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -5.49,
+      "latency_ms": 661.1
+    },
+    {
+      "id": "t012",
+      "question": "What is the notice period under Saudi Arabian labour law?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": 2.105,
+      "latency_ms": 684.1
+    },
+    {
+      "id": "t013",
+      "question": "How are owners association service charges regulated in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": -2.3,
+      "latency_ms": 515.1
+    },
+    {
+      "id": "t014",
+      "question": "What is the process for company liquidation in the DIFC?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -10.227,
+      "latency_ms": 756.0
+    },
+    {
+      "id": "t015",
+      "question": "Which bank offers the best mortgage rate in Dubai?",
+      "answerable": false,
+      "gold": null,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -6.135,
+      "latency_ms": 523.3
+    }
+  ]
+}

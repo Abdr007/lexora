@@ -1,0 +1,68 @@
+[
+  {
+    "target_tokens": 300,
+    "encoder_window_enforced": true,
+    "chunks": 218,
+    "tokens_mean": 162.02293577981652,
+    "tokens_max": 307,
+    "articles_split": 33,
+    "over_window": 0,
+    "hit_rate_at_1": 0.7609,
+    "hit_rate_at_5": 0.9348
+  },
+  {
+    "target_tokens": 300,
+    "encoder_window_enforced": false,
+    "chunks": 218,
+    "tokens_mean": 162.02293577981652,
+    "tokens_max": 307,
+    "articles_split": 33,
+    "over_window": 0,
+    "hit_rate_at_1": 0.7609,
+    "hit_rate_at_5": 0.9348
+  },
+  {
+    "target_tokens": 600,
+    "encoder_window_enforced": true,
+    "chunks": 181,
+    "tokens_mean": 182.05524861878453,
+    "tokens_max": 510,
+    "articles_split": 13,
+    "over_window": 0,
+    "hit_rate_at_1": 0.7391,
+    "hit_rate_at_5": 0.9348
+  },
+  {
+    "target_tokens": 600,
+    "encoder_window_enforced": false,
+    "chunks": 172,
+    "tokens_mean": 188.36046511627907,
+    "tokens_max": 598,
+    "articles_split": 5,
+    "over_window": 14,
+    "hit_rate_at_1": 0.7391,
+    "hit_rate_at_5": 0.9348
+  },
+  {
+    "target_tokens": 1000,
+    "encoder_window_enforced": true,
+    "chunks": 181,
+    "tokens_mean": 182.05524861878453,
+    "tokens_max": 510,
+    "articles_split": 13,
+    "over_window": 0,
+    "hit_rate_at_1": 0.7391,
+    "hit_rate_at_5": 0.9348
+  },
+  {
+    "target_tokens": 1000,
+    "encoder_window_enforced": false,
+    "chunks": 168,
+    "tokens_mean": 191.88690476190476,
+    "tokens_max": 995,
+    "articles_split": 1,
+    "over_window": 13,
+    "hit_rate_at_1": 0.7391,
+    "hit_rate_at_5": 0.9348
+  }
+]

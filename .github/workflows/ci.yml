@@ -1,0 +1,143 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keeps the ONNX cache in one place so actions/cache can hold it across runs.
+  LEXORA_VAR_DIR: ${{ github.workspace }}/var
+
+jobs:
+  api:
+    name: API — lint, types, tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: |
+          uv venv --python 3.12 apps/api/.venv
+          uv pip install --python apps/api/.venv/bin/python -e "apps/api[dev]"
+
+      # The models are ~200 MB. Caching them turns a 3-minute download into seconds
+      # and keeps CI from hammering the Hugging Face CDN on every push.
+      - name: Cache ONNX models
+        uses: actions/cache@v4
+        with:
+          path: var/models
+          key: onnx-${{ runner.os }}-${{ hashFiles('apps/api/pyproject.toml') }}
+
+      - name: Fetch the corpus
+        run: apps/api/.venv/bin/python corpus/download.py
+
+      - name: Build the index
+        run: apps/api/.venv/bin/python -m app.rag.index
+        env:
+          PYTHONPATH: apps/api
+
+      - name: Verify the eval labels against the corpus
+        run: apps/api/.venv/bin/python eval/build_questions.py
+
+      - name: ruff
+        run: |
+          apps/api/.venv/bin/ruff check .
+          apps/api/.venv/bin/ruff format --check .
+
+      - name: mypy --strict
+        run: apps/api/.venv/bin/mypy
+
+      - name: pytest
+        run: apps/api/.venv/bin/python -m pytest
+
+      # A regression in retrieval quality should fail the build like any other test.
+      # The thresholds are the numbers recorded in AUDIT.md, minus a small tolerance.
+      - name: Evaluate retrieval and gate on it
+        run: |
+          apps/api/.venv/bin/python eval/ragas_run.py
+          apps/api/.venv/bin/python - <<'PY'
+          import json, pathlib, sys
+          report = json.loads(pathlib.Path("eval/results/latest.json").read_text())
+          arm = report["configurations"]["with_rerank"]
+          floors = {
+              "hit_rate_at_5": 0.90,
+              "hit_rate_at_1": 0.70,
+              "mrr": 0.78,
+              "refusal_accuracy": 0.78,
+          }
+          failed = [
+              f"{name}: {arm[name]:.4f} < {floor}"
+              for name, floor in floors.items()
+              if arm[name] < floor
+          ]
+          if arm["false_refusals"] > 0:
+              failed.append(f"false_refusals: {arm['false_refusals']} > 0")
+          for line in failed:
+              print(f"QUALITY GATE FAILED  {line}")
+          sys.exit(1 if failed else 0)
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results
+          path: eval/results/
+
+  web:
+    name: Web — types, lint, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx eslint . --max-warnings 0
+      - run: npm run build
+
+  container:
+    name: Container builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Rebuild the portable index the image copies in
+        run: |
+          uv venv --python 3.12 apps/api/.venv
+          uv pip install --python apps/api/.venv/bin/python -e "apps/api"
+          apps/api/.venv/bin/python corpus/download.py
+          PYTHONPATH=apps/api apps/api/.venv/bin/python -m app.rag.index
+      - name: Build the image
+        run: docker build -t lexora-api:ci .
+      - name: Boot it and check readiness
+        run: |
+          docker run -d --name lexora -p 7860:7860 lexora-api:ci
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:7860/api/health | grep -q '"status":"ok"'; then
+              echo "container healthy"; exit 0
+            fi
+            sleep 5
+          done
+          echo "container did not become healthy"; docker logs lexora; exit 1

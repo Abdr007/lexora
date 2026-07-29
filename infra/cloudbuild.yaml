@@ -1,0 +1,42 @@
+# Build the Lexora API image on Google Cloud Build.
+#
+# Why remotely rather than `docker build` locally: Cloud Run runs linux/amd64, and a
+# Mac on Apple Silicon produces linux/arm64 by default. The resulting image deploys
+# without complaint and then fails at runtime with an exec-format error — a slow,
+# confusing way to discover an architecture mismatch. Cloud Build runs on amd64
+# natively, so the question does not arise, and the ~1.3 GB image never has to travel
+# over a home upload link.
+#
+#   gcloud builds submit --config infra/cloudbuild.yaml \
+#     --substitutions=_REGION=europe-west1,_REPO=lexora,_IMAGE=api
+#
+# Free tier: 2,500 build-minutes per month. This build takes about 6.
+
+substitutions:
+  _REGION: europe-west1
+  _REPO: lexora
+  _IMAGE: api
+  _TAG: latest
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - --file=Dockerfile
+      # Cache from the previous build so a code-only change does not re-download the
+      # ONNX models. Ignored harmlessly on the very first run.
+      - --cache-from=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:${_TAG}
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:${_TAG}
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA
+      - .
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:${_TAG}
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA
+
+options:
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s

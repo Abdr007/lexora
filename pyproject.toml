@@ -1,0 +1,153 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Lexora — repo-root tooling configuration.
+#
+# This file configures ruff / mypy / pytest for EVERY Python file in the repo
+# (apps/api, corpus, eval, scripts) so there is a single source of truth for the
+# "zero warnings" gate. Package metadata and runtime dependencies live in
+# apps/api/pyproject.toml.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [
+  "**/.venv",
+  "var",
+  "apps/web",
+  "corpus/pdf",
+]
+
+[tool.ruff.lint]
+select = [
+  "E", "W",    # pycodestyle
+  "F",         # pyflakes
+  "I",         # isort
+  "N",         # pep8-naming
+  "UP",        # pyupgrade
+  "B",         # flake8-bugbear
+  "A",         # flake8-builtins
+  "C4",        # comprehensions
+  "DTZ",       # flake8-datetimez
+  "T20",       # flake8-print
+  "PT",        # pytest style
+  "RET",       # flake8-return
+  "SIM",       # flake8-simplify
+  "TID",       # tidy imports
+  "ARG",       # unused arguments
+  "PTH",       # prefer pathlib
+  "PL",        # pylint
+  "TRY",       # tryceratops
+  "RUF",       # ruff-specific
+  "S",         # flake8-bandit (security)
+  "ASYNC",     # flake8-async
+  "ANN",       # flake8-annotations
+]
+ignore = [
+  "ANN401",   # `Any` is unavoidable at a few third-party SDK boundaries
+  "TRY003",   # an inline message beats a bespoke exception class per error site
+  "PLR0913",  # pipeline constructors legitimately take many explicit knobs
+  "TRY400",   # logger.error with an explicit message is intentional in handlers
+  # Deferred imports are deliberate throughout: they break import cycles between the
+  # retrieval modules and keep multi-hundred-megabyte ONNX runtimes off the import path
+  # of anything that does not actually run inference. Each site is a considered choice.
+  "PLC0415",
+  # Typographic characters (em dash, middle dot, non-breaking hyphen) appear in prose
+  # strings and in the corpus's own text. Flagging them is noise, not safety.
+  "RUF001", "RUF002", "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# CLI entrypoints are meant to print to the terminal.
+"corpus/download.py"           = ["T201"]
+"eval/*.py"                    = ["T201"]
+"scripts/*.py"                 = ["T201"]
+"apps/api/app/rag/index.py"    = ["T201"]
+# `_looks_like_title` is a chain of independent disqualifying tests. Collapsing eight
+# early returns into nested conditionals would make it harder to read, not safer.
+"apps/api/app/rag/parse.py"    = ["PLR0911"]
+# Tests assert, use magic numbers, and take fixtures they do not always read.
+# ANN2 is off for tests only: every test function returns None, so annotating 100 of
+# them adds noise without adding a single guarantee. Production code keeps ANN in full.
+"apps/api/tests/**"            = ["S101", "PLR2004", "ARG001", "PLR0915", "ANN"]
+# FastAPI's dependency-injection idiom IS a call in a default argument (`Depends(...)`),
+# and the framework requires it. Nothing else in the file relies on B008.
+"apps/api/app/main.py"         = ["B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+no_implicit_reexport = true
+show_error_codes = true
+mypy_path = "apps/api"
+# Without this, `apps/api/tests/conftest.py` is discovered both as `conftest` (because
+# apps/api is on mypy_path) and as `tests.conftest`, which mypy rejects outright.
+explicit_package_bases = true
+namespace_packages = true
+files = ["apps/api/app", "apps/api/tests", "corpus", "eval", "scripts"]
+exclude = "(^|/)(\\.venv|var|corpus/pdf)/"
+
+[[tool.mypy.overrides]]
+# Third-party packages that ship no inline types / no py.typed marker.
+module = [
+  "rank_bm25.*",
+  "fastembed.*",
+  "fastembed",
+  "langfuse.*",
+  "slowapi.*",
+  "fitz",
+  # Optional heavyweight reranker backend, imported lazily and never installed by default.
+  "sentence_transformers.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Same policy as ruff's ANN ignore for tests: every test function returns None, so
+# annotating a hundred of them adds noise without adding a guarantee. Production code
+# stays under full --strict.
+module = ["tests.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["apps/api/tests"]
+pythonpath = ["apps/api"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-q --strict-markers --strict-config"
+filterwarnings = [
+  "error",
+  # PyMuPDF's SWIG bindings emit this at import time. Under `-W error` the exception is
+  # raised *inside* a C-extension initialiser, which segfaults the interpreter during
+  # collection rather than failing a test — so it must be filtered, not fixed here.
+  "ignore:builtin type .* has no __module__ attribute:DeprecationWarning",
+  "ignore::DeprecationWarning:importlib._bootstrap",
+  # Deprecations raised inside third-party packages that we neither trigger
+  # from our own code nor can fix from here.
+  "ignore::DeprecationWarning:websockets.*",
+  "ignore::DeprecationWarning:httpx.*",
+  "ignore::DeprecationWarning:starlette.*",
+]
+markers = [
+  "integration: exercises the real on-disk index (requires `make index` first)",
+  "live_llm: calls the real Anthropic API (requires ANTHROPIC_API_KEY)",
+]

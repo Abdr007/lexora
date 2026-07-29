@@ -1,0 +1,41 @@
+# ── secrets ──────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+apps/web/.env.local
+!apps/web/.env.local.example
+
+# ── corpus ───────────────────────────────────────────────────────────────────
+# The law PDFs are government publications fetched by corpus/download.py. Only the
+# provenance manifest (URLs + SHA-256) is committed, so the repo stays small and
+# does not redistribute the documents.
+corpus/pdf/
+
+# ── build artefacts ──────────────────────────────────────────────────────────
+# var/ holds the embedded Qdrant store and the ONNX model cache: large, machine
+# specific, and rebuilt by `make index`. The PORTABLE index artefacts under
+# var/index are committed on purpose — see the exception below — so a fresh clone
+# or a cold container can serve without re-downloading two government hosts.
+var/*
+!var/index/
+var/index/*
+!var/index/chunks.jsonl
+!var/index/bm25.json
+!var/index/index_meta.json
+
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+.DS_Store
+*.log

@@ -1,0 +1,75 @@
+{
+  "$comment": [
+    "Provenance manifest for the Lexora corpus. Every document is an OFFICIAL English",
+    "publication of a UAE federal ministry or the Government of Dubai.",
+    "",
+    "`official_url` is the canonical government URL. `mirror_url`, when present, is a",
+    "Wayback Machine snapshot OF THAT EXACT FILE, used only when the official host is",
+    "unreachable from the build network (see corpus/README.md 'Fallback note').",
+    "",
+    "`sha256` pins the bytes. corpus/download.py refuses to install a file whose digest",
+    "does not match, so a silently-changed or man-in-the-middled document cannot enter",
+    "the index.",
+    "",
+    "`label` is what the UI prints inside a citation chip, e.g. [Labour Law - Art. 51]."
+  ],
+  "schema_version": 1,
+  "documents": [
+    {
+      "law_id": "uae-labour-law",
+      "label": "Labour Law",
+      "title": "Federal Decree-Law No. 33 of 2021 Regarding the Regulation of Employment Relationships (as amended), with Cabinet Resolution No. 1 of 2022",
+      "jurisdiction": "United Arab Emirates (Federal)",
+      "publisher": "Ministry of Human Resources and Emiratisation (MOHRE)",
+      "language": "en",
+      "filename": "uae-labour-law-33-2021.pdf",
+      "official_url": "https://www.mohre.gov.ae/assets/download/e82f7872/Federal%20Decree-Law%20No.%2033%20of%202021%20Regarding%20the%20Regulation%20of%20Employment%20Relationship%20and%20its%20amendments_638990571068264034.pdf.aspx",
+      "mirror_url": "https://web.archive.org/web/20260106220030id_/https://mohre.gov.ae/assets/download/e82f7872/Federal%20Decree-Law%20No.%2033%20of%202021%20Regarding%20the%20Regulation%20of%20Employment%20Relationship%20and%20its%20amendments_638990571068264034.pdf.aspx",
+      "sha256": "db64033dcaefdd8981e7ab2f4e121f22614790ee56edc44f4e1130dda1d833b6",
+      "article_pattern": "labour",
+      "notes": "Consolidated English text: 74 articles of the Decree-Law plus the executive regulations issued as Cabinet Resolution No. 1 of 2022."
+    },
+    {
+      "law_id": "dubai-tenancy-law",
+      "label": "Tenancy Law",
+      "title": "Law No. 26 of 2007 Regulating the Relationship between Landlords and Tenants in the Emirate of Dubai",
+      "jurisdiction": "Emirate of Dubai",
+      "publisher": "Government of Dubai \u2014 Legal Affairs Department",
+      "language": "en",
+      "filename": "dubai-tenancy-law-26-2007.pdf",
+      "official_url": "https://dlp.dubai.gov.ae/Legislation%20Reference/2007/Law%20No.%20(26)%20of%202007%20Regarding%20regulation%20between%20the%20lessor%20and%20the%20lessee.pdf",
+      "mirror_url": null,
+      "sha256": "746bdf4dfc37619b354890ff3bb198c20d00e703a849ce1cf40737ebcb84d77b",
+      "article_pattern": "dubai",
+      "notes": "Base tenancy statute. Several articles are superseded by Law No. 33 of 2008."
+    },
+    {
+      "law_id": "dubai-tenancy-amendment",
+      "label": "Tenancy Amendment",
+      "title": "Law No. 33 of 2008 Amending Law No. 26 of 2007 Regulating the Relationship between Landlords and Tenants in the Emirate of Dubai",
+      "jurisdiction": "Emirate of Dubai",
+      "publisher": "Government of Dubai \u2014 Legal Affairs Department",
+      "language": "en",
+      "filename": "dubai-tenancy-amendment-33-2008.pdf",
+      "official_url": "https://dlp.dubai.gov.ae/Legislation%20Reference/2009/Law%20No.%20(33)%20of%202008%20Amending%20Law%20No.%20(26)%20of%202007.pdf",
+      "mirror_url": null,
+      "sha256": "3405f6b2845519a3fcee03be190fb0ea678892cb5cc31c4ae29b382604ef7893",
+      "article_pattern": "dubai",
+      "notes": "Replaces and adds articles in Law 26/2007. Article numbers intentionally collide with the base law \u2014 retrieval must keep the two laws distinguishable, which is exactly what the law_id payload filter is for."
+    },
+    {
+      "law_id": "dubai-rent-decree",
+      "label": "Rent Decree",
+      "title": "Decree No. 43 of 2013 Determining Rent Increase for Real Property in the Emirate of Dubai",
+      "jurisdiction": "Emirate of Dubai",
+      "publisher": "Government of Dubai \u2014 Legal Affairs Department",
+      "language": "en",
+      "filename": "dubai-rent-increase-decree-43-2013.pdf",
+      "official_url": "https://dlp.dubai.gov.ae/Legislation%20Reference/2013/Decree%20No.%20(43)%20of%202013%20Determining%20Rent%20Increase%20for%20Real%20Property.pdf",
+      "mirror_url": null,
+      "sha256": "59c053cab4759bf2b61877b4148c776b51eadad897cf1110668197799d83787b",
+      "article_pattern": "dubai",
+      "notes": "The rent-cap ladder every Dubai tenant asks about. Short, numeric, and a good exact-term retrieval probe."
+    }
+  ]
+}

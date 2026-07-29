@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-07-29T17:10:26+00:00",
+  "engine": "offline-extractive",
+  "judge_model": null,
+  "reranker": "Xenova/ms-marco-MiniLM-L-6-v2",
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "dataset": {
+    "questions": 61,
+    "answerable": 46,
+    "traps": 15
+  },
+  "configurations": {
+    "no_rerank": {
+      "hit_rate_at_1": 0.6304,
+      "hit_rate_at_5": 0.913,
+      "mrr": 0.7399,
+      "context_precision": 0.1826,
+      "context_recall": 0.913,
+      "refusal_accuracy": 0.3333,
+      "false_refusals": 0,
+      "missed_refusals": 10,
+      "answerable": 46,
+      "traps": 15,
+      "faithfulness": null,
+      "answer_relevancy": null
+    },
+    "with_rerank": {
+      "hit_rate_at_1": 0.7391,
+      "hit_rate_at_5": 0.9348,
+      "mrr": 0.8109,
+      "context_precision": 0.187,
+      "context_recall": 0.9348,
+      "refusal_accuracy": 0.8,
+      "false_refusals": 0,
+      "missed_refusals": 3,
+      "answerable": 46,
+      "traps": 15,
+      "faithfulness": null,
+      "answer_relevancy": null
+    }
+  },
+  "latency_ms": {
+    "no_rerank": {
+      "p50_ms": 5.3,
+      "p95_ms": 8.4,
+      "max_ms": 102.9
+    },
+    "with_rerank": {
+      "p50_ms": 528.0,
+      "p95_ms": 684.1,
+      "max_ms": 756.0
+    }
+  },
+  "refusal_calibration": {
+    "answerable_min": -3.574,
+    "trap_max": 3.294,
+    "separation": -6.868,
+    "floor": -0.14,
+    "active_floor": -3.6
+  }
+}
