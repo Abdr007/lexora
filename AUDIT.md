@@ -44,7 +44,7 @@ two copies that drift.
 | Lint | `ruff check .` | **All checks passed** |
 | Format | `ruff format --check .` | **51 files already formatted** |
 | Types | `mypy` (`--strict`) | **no issues in 45 source files** |
-| Tests | `pytest` | **164 passed, 0 skipped** |
+| Tests | `pytest` | **165 passed, 0 skipped** |
 | Web types | `tsc --noEmit` | **clean** |
 | Web lint | `eslint . --max-warnings 0` | **clean** |
 | Web build | `next build` | **compiled successfully, 5/5 pages** |
@@ -114,7 +114,7 @@ contents_extra_in_body      []
 
 **74/74** Decree-Law articles and **39/39** Cabinet Resolution articles, with zero
 discrepancies, validated by an index the publisher wrote rather than by this code. The
-contents also supplies the official article titles, which corrected 31 titles inferred
+contents also supplies the official article titles, which corrected 30 titles inferred
 from page geometry — including one that was outright wrong (Article 29 read "Rules for
 Deductions from End of" when it is "Annual Leave").
 
@@ -140,9 +140,10 @@ Recorded because they are the reason the checks above exist.
 | ruff resolved `tests` as first-party locally, third-party on CI | Import-order failure that could not be reproduced on a developer machine | `known-first-party = ["app", "tests"]` |
 | Terraform `for_each = [1]` | A list of number is not an iterable collection in current Terraform | `toset([...])` |
 | Eval scripts assumed `PYTHONPATH` contained the repo root | `ModuleNotFoundError: eval` on any runner that did not set it | Each script puts both paths on `sys.path` itself |
+| **Contents page numbers leaked into article titles** | `PAGE_FURNITURE_RE` drops a bare page number but not a *range*, so the Labour Law's `Article (58-64) \| Penalties \| 39-40` contents row indexed seven articles under the title **"Penalties 39-40"**. Nothing downstream would have rejected it — a plausible string that rode into the chunk text and therefore into the BM25 index. Found by reading a rendered answer, not by a test | Contents rows now drop a trailing page cell, and a range welded onto the title is stripped only when something with letters survives. All 7 read "Penalties"; a test asserts no article title anywhere contains a digit |
 | **`dev.sh` identified its own processes by command line** | Two projects on this machine run `python -m uvicorn app.main:app --port N`, so the pattern matched a *neighbouring project's* API. `status` reported that neighbour as "Lexora, up" while Lexora was not running at all, `start` saw the busy port and skipped starting, and `stop` would have sent SIGTERM to the other project. Only the working directory distinguishes them | Every lookup now resolves the pid listening on the port and requires its `cwd` to be inside this repo; `start` names the foreign owner and refuses rather than assuming success. Port moved to 7862, since 7860 *and* 7861 were taken |
 | **`lsof` exit status aborted `dev.sh` mid-run** | `lsof` exits non-zero when a port is free — the *normal* answer — and under `set -euo pipefail` that propagated out of the command substitution and killed the script. `stop` signalled the first service, hit a free port on the second lookup and died, reporting success while the API it had never signalled kept running and kept the Qdrant lock | `|| true` on every lookup, and `stop` now waits for the process to actually exit, escalating to SIGKILL and verifying. "Signal sent" is not "process stopped" |
-| **23 integration tests silently skipped** | The `index_available` probe opened a *second* `QdrantClient` on the locked store. The constructor opens the lock file and only then raises, so the handle was orphaned — surfacing as an unraisable `ResourceWarning` that failed the run under `-W error` while pointing at a lock file. Combined with the `stop` defect above, the whole HTTP suite — contract, SSE, CORS, injection — skipped on any machine where `make dev` had been run, and the DoD's "verified through the HTTP API" rested on 126 of 149 tests | Probe takes the same `portalocker` advisory lock on a handle it owns, inside `with`. Remote Qdrant skips the check entirely. Now **164 passed, 0 skipped** with the store free, and a clean exit-0 skip when it is genuinely held |
+| **23 integration tests silently skipped** | The `index_available` probe opened a *second* `QdrantClient` on the locked store. The constructor opens the lock file and only then raises, so the handle was orphaned — surfacing as an unraisable `ResourceWarning` that failed the run under `-W error` while pointing at a lock file. Combined with the `stop` defect above, the whole HTTP suite — contract, SSE, CORS, injection — skipped on any machine where `make dev` had been run, and the DoD's "verified through the HTTP API" rested on 126 of 149 tests | Probe takes the same `portalocker` advisory lock on a handle it owns, inside `with`. Remote Qdrant skips the check entirely. Now **165 passed, 0 skipped** with the store free, and a clean exit-0 skip when it is genuinely held |
 | **Rate limit throttled legitimate use** | 10/min/IP. The UI offers four one-click questions, so a person working through them plus a few follow-ups is rate-limited inside a single minute — the demo pre-flight hit 429 on its eighth request. An abuse control that fires during a normal session is a defect, not a hardening win | Raised to 30/min, which still throttles a scraper hard. Re-measured live: of 45 rapid requests, exactly 30 accepted and 15 rejected |
 | CORS default pointed at another project's port | `cors_allow_origins` defaulted to `http://localhost:3000` — the port a *different* project on this machine serves. Lexora's web app is on 3020, so the default allowlist admitted a neighbour and not itself | Default corrected to `http://localhost:3020`; this also removes the local/CI divergence the CORS test had to work around |
 

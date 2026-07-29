@@ -213,7 +213,7 @@ lexora/
     app/rag/           parse · chunk · index · retrieve · rerank · generate · verify
     app/guard/         query rewrite + prompt-injection screening
     app/core/          settings · models · claude · embedding · vectorstore · observability
-    tests/             164 tests, run against the real corpus and index
+    tests/             165 tests, run against the real corpus and index
   apps/web/            Next.js 15 · Tailwind 4 · Framer Motion
   corpus/              download.py + provenance manifest (PDFs gitignored)
   eval/                questions.jsonl · ragas_run.py · chunking_experiment.py

@@ -200,3 +200,26 @@ class TestNormalise:
     def test_preserves_accented_letters(self):
         """Regression guard: a character-class RANGE here would blank Latin/Greek text."""
         assert _normalise("café Ünter Ωmega") == "café Ünter Ωmega"
+
+
+def test_contents_page_numbers_never_reach_an_article_title(parsed: list[ParsedDocument]):
+    """A contents row is ``Article (N) | Title | page``, and the page is not the title.
+
+    ``PAGE_FURNITURE_RE`` dropped a bare page number but not a *range*, so the Labour
+    Law's ``Article (58-64) | Penalties | 39-40`` row indexed seven articles under the
+    title "Penalties 39-40". Nothing downstream would have rejected that: it is a
+    plausible-looking string, and it rode into the chunk text and therefore into BM25.
+    """
+    titled = [
+        (document.law_id, article.article_no, article.title)
+        for document in parsed
+        for article in document.articles
+        if article.title
+    ]
+    assert titled, "no titles parsed at all"
+    contaminated = [entry for entry in titled if any(ch.isdigit() for ch in entry[2])]
+    assert contaminated == [], f"page numbers leaked into titles: {contaminated}"
+
+    labour = next(d for d in parsed if d.law_id == "uae-labour-law")
+    penalties = [a.title for a in labour.articles if 58 <= a.article_no <= 64]
+    assert penalties == ["Penalties"] * len(penalties), penalties

@@ -121,6 +121,15 @@ MAX_TITLE_CHARS: Final = 90
 CENTRED_TOLERANCE_RATIO: Final = 0.10
 MIN_BLOCKS_FOR_COLUMN_DETECTION: Final = 4
 # A contents row needs at least a label and a title to be usable.
+# A contents row ends in the page it points at, and an entry spanning pages prints a
+# range: "Article (58-64) | Penalties | 39-40". PAGE_FURNITURE_RE covers a bare page
+# number but not a range, so the range survived into the title and seven articles were
+# indexed as "Penalties 39-40". Kept separate from PAGE_FURNITURE_RE deliberately: this
+# shape is only unambiguous inside a table of contents, where a trailing numeric cell is
+# always a page reference. In body text it could be a real range.
+CONTENTS_PAGE_CELL_RE: Final = re.compile(r"^\s*\d{1,4}\s*[-–—]\s*\d{1,4}\s*$")
+# The same range, welded to the title when the PDF emits both in one block.
+CONTENTS_TRAILING_PAGE_RE: Final = re.compile(r"[\s.·•]*\b\d{1,4}(?:\s*[-–—]\s*\d{1,4})?\s*$")
 MIN_CONTENTS_ROW_CELLS: Final = 2
 # A page is either one column or two; nothing in this corpus uses three.
 TWO_COLUMNS: Final = 2
@@ -482,9 +491,15 @@ def _row_to_entries(row: list[_Line]) -> list[ContentsEntry]:
         ln.text.strip().lstrip(TITLE_MARKER_CHARS).strip()
         for ln in row[label_index + 1 :]
         if not PAGE_FURNITURE_RE.match(ln.text.strip())
+        and not CONTENTS_PAGE_CELL_RE.match(ln.text.strip())
         and not CONTENTS_ENTRY_RE.match(ln.text.strip())
     ]
     title = _normalise(" ".join(part for part in title_parts if part))
+    # Only strip when something with letters survives: better a title carrying a stray
+    # page number than no title at all.
+    stripped = CONTENTS_TRAILING_PAGE_RE.sub("", title).strip()
+    if stripped and any(ch.isalpha() for ch in stripped):
+        title = stripped
     return [ContentsEntry(article_no=n, title=title) for n in range(first, last + 1)]
 
 
