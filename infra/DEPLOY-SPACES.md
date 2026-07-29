@@ -153,7 +153,7 @@ Space → Settings → Variables:
 
 ## 8. Before a demo, warm it
 
-A free Space sleeps after 48 hours idle and takes ~30 s to wake, plus the ONNX load.
+A Space sleeps after 48 hours idle and takes ~30 s to wake, plus the ONNX load.
 
 ```bash
 curl -s https://YOUR_USERNAME-lexora.hf.space/api/health >/dev/null
@@ -171,5 +171,5 @@ Run that a minute before you present. Or keep the tab open.
 | Space stuck on "Building" | Model download is slow | Normal for the first build; 8–12 min |
 | `/api/health` says `degraded` | Index missing from the image | Check the build log for the `COPY var/index` step |
 | CORS error in the browser | Origin not on the allowlist | §7 — exact scheme + host |
-| 429 from the API | Rate limiter, 10/min/IP | Expected. Raise `LEXORA_RATE_LIMIT` in Space settings if needed |
+| 429 from the API | Rate limiter, 30/min/IP | Expected. Raise `LEXORA_RATE_LIMIT` in Space settings if needed |
 | Push rejected | Token is read-only | Create a **Write** token in §1 |

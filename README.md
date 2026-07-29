@@ -25,7 +25,7 @@ hit-rate@5   0.913 → 0.935     reranking on/off, same index, same questions
 hit-rate@1   0.630 → 0.739
 MRR          0.740 → 0.811
 refusal      0.333 → 0.800     with zero false refusals on 46 answerable questions
-latency      p50 528 ms · p95 684 ms   retrieval + rerank, CPU only
+latency      p50 618 ms · p95 765 ms   end to end, CPU only, 30 queries warm
 ```
 
 The full method, every threshold, and the things that did *not* work are in
@@ -213,7 +213,7 @@ lexora/
     app/rag/           parse · chunk · index · retrieve · rerank · generate · verify
     app/guard/         query rewrite + prompt-injection screening
     app/core/          settings · models · claude · embedding · vectorstore · observability
-    tests/             149 tests, run against the real corpus and index
+    tests/             164 tests, run against the real corpus and index
   apps/web/            Next.js 15 · Tailwind 4 · Framer Motion
   corpus/              download.py + provenance manifest (PDFs gitignored)
   eval/                questions.jsonl · ragas_run.py · chunking_experiment.py

@@ -296,5 +296,5 @@ gcloud projects delete lexora-prod
 | Container fails the startup probe | Cold start exceeded the deadline | `--timeout 60s` and check the log for the ONNX load line |
 | `/api/health` says `degraded` | `var/index` missing from the image | Run `make index`, rebuild |
 | Browser console shows a CORS error | Origin not on the allowlist | Step 11 — it must be the exact scheme+host |
-| 429 from the API | Rate limiter, 10/min/IP | Expected. Raise `LEXORA_RATE_LIMIT` if you must |
+| 429 from the API | Rate limiter, 30/min/IP | Expected. Raise `LEXORA_RATE_LIMIT` if you must |
 | Build fails on `COPY var/index` | Index never built | Step 6 |

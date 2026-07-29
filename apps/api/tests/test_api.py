@@ -66,6 +66,26 @@ class TestAsk:
         assert body["gate"]["decision"] == "block"
         assert body["gate"]["signals"]
 
+    def test_unknown_law_id_is_a_client_error_not_a_refusal(self, client: TestClient):
+        """An unknown filter is the caller's mistake, not a gap in the corpus.
+
+        This used to retrieve nothing, which the gate reported as "not covered by the
+        indexed corpus" — a statement about the corpus that was false. The corpus may
+        cover the question perfectly; the filter was wrong.
+        """
+        response = client.post(
+            "/api/ask", json={"question": "What is the notice period?", "law_id": "nope"}
+        )
+        assert response.status_code == 422
+        assert "uae-labour-law" in response.json()["detail"]
+
+    def test_input_without_words_is_refused_not_answered(self, client: TestClient):
+        """Emoji scored above the refusal floor and were answered with citations."""
+        for question in ("🙂🙂🙂", "42"):
+            body = client.post("/api/ask", json={"question": question}).json()
+            assert body["kind"] == "refusal", f"{question!r} was answered"
+            assert body["evidence"] == []
+
     def test_law_filter_restricts_retrieval(self, client: TestClient):
         body = client.post(
             "/api/ask",

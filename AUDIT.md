@@ -42,9 +42,9 @@ two copies that drift.
 | Gate | Command | Result |
 |---|---|---|
 | Lint | `ruff check .` | **All checks passed** |
-| Format | `ruff format --check .` | **40 files already formatted** |
-| Types | `mypy` (`--strict`) | **no issues in 41 source files** |
-| Tests | `pytest` | **149 passed** |
+| Format | `ruff format --check .` | **51 files already formatted** |
+| Types | `mypy` (`--strict`) | **no issues in 45 source files** |
+| Tests | `pytest` | **164 passed, 0 skipped** |
 | Web types | `tsc --noEmit` | **clean** |
 | Web lint | `eslint . --max-warnings 0` | **clean** |
 | Web build | `next build` | **compiled successfully, 5/5 pages** |
@@ -142,7 +142,9 @@ Recorded because they are the reason the checks above exist.
 | Eval scripts assumed `PYTHONPATH` contained the repo root | `ModuleNotFoundError: eval` on any runner that did not set it | Each script puts both paths on `sys.path` itself |
 | **`dev.sh` identified its own processes by command line** | Two projects on this machine run `python -m uvicorn app.main:app --port N`, so the pattern matched a *neighbouring project's* API. `status` reported that neighbour as "Lexora, up" while Lexora was not running at all, `start` saw the busy port and skipped starting, and `stop` would have sent SIGTERM to the other project. Only the working directory distinguishes them | Every lookup now resolves the pid listening on the port and requires its `cwd` to be inside this repo; `start` names the foreign owner and refuses rather than assuming success. Port moved to 7862, since 7860 *and* 7861 were taken |
 | **`lsof` exit status aborted `dev.sh` mid-run** | `lsof` exits non-zero when a port is free — the *normal* answer — and under `set -euo pipefail` that propagated out of the command substitution and killed the script. `stop` signalled the first service, hit a free port on the second lookup and died, reporting success while the API it had never signalled kept running and kept the Qdrant lock | `|| true` on every lookup, and `stop` now waits for the process to actually exit, escalating to SIGKILL and verifying. "Signal sent" is not "process stopped" |
-| **23 integration tests silently skipped** | The `index_available` probe opened a *second* `QdrantClient` on the locked store. The constructor opens the lock file and only then raises, so the handle was orphaned — surfacing as an unraisable `ResourceWarning` that failed the run under `-W error` while pointing at a lock file. Combined with the `stop` defect above, the whole HTTP suite — contract, SSE, CORS, injection — skipped on any machine where `make dev` had been run, and the DoD's "verified through the HTTP API" rested on 126 of 149 tests | Probe takes the same `portalocker` advisory lock on a handle it owns, inside `with`. Remote Qdrant skips the check entirely. Now **149 passed, 0 skipped** with the store free, and a clean exit-0 skip when it is genuinely held |
+| **23 integration tests silently skipped** | The `index_available` probe opened a *second* `QdrantClient` on the locked store. The constructor opens the lock file and only then raises, so the handle was orphaned — surfacing as an unraisable `ResourceWarning` that failed the run under `-W error` while pointing at a lock file. Combined with the `stop` defect above, the whole HTTP suite — contract, SSE, CORS, injection — skipped on any machine where `make dev` had been run, and the DoD's "verified through the HTTP API" rested on 126 of 149 tests | Probe takes the same `portalocker` advisory lock on a handle it owns, inside `with`. Remote Qdrant skips the check entirely. Now **164 passed, 0 skipped** with the store free, and a clean exit-0 skip when it is genuinely held |
+| **Rate limit throttled legitimate use** | 10/min/IP. The UI offers four one-click questions, so a person working through them plus a few follow-ups is rate-limited inside a single minute — the demo pre-flight hit 429 on its eighth request. An abuse control that fires during a normal session is a defect, not a hardening win | Raised to 30/min, which still throttles a scraper hard. Re-measured live: of 45 rapid requests, exactly 30 accepted and 15 rejected |
+| CORS default pointed at another project's port | `cors_allow_origins` defaulted to `http://localhost:3000` — the port a *different* project on this machine serves. Lexora's web app is on 3020, so the default allowlist admitted a neighbour and not itself | Default corrected to `http://localhost:3020`; this also removes the local/CI divergence the CORS test had to work around |
 
 ---
 
@@ -319,7 +321,7 @@ overrides — text invisible to a human reviewer but fully visible to the model.
 | Control | Implementation | Test |
 |---|---|---|
 | CORS | Allowlist, never `*`; credentials disabled | `test_cors_allows_only_configured_origins` |
-| Rate limit | slowapi, 10/min/IP | Verified live: 20 of 30 rapid requests correctly rejected |
+| Rate limit | slowapi, 30/min/IP | Verified live: of 45 rapid requests, exactly 30 accepted and 15 rejected with 429 |
 | Body size | Hard cap **before** parsing (413) plus Pydantic bounds | `test_rejects_an_oversized_body_before_parsing` |
 | Input validation | `extra="forbid"`, length and depth caps, non-blank check | 6 parametrised cases |
 | Error leakage | Opaque message + correlation id; traceback to logs only | `security_and_limits` middleware |
@@ -373,21 +375,31 @@ deploying, rather than by a failed deploy with an opaque log.
 
 ## 7. Performance
 
-Retrieval + rerank budget: **≤1.5 s on CPU**. 30 queries, warm process.
+Retrieval + rerank budget: **≤1.5 s on CPU**. 30 queries, warm process, all stages from
+the *same* run so the rows add up.
 
 | Stage | p50 | p95 | max |
 |---|---|---|---|
-| Retrieval (dense ∥ sparse → RRF) | 2 ms | 8 ms | 8 ms |
-| Rerank (cross-encoder, 20 → 5) | 559 ms | 657 ms | 735 ms |
-| **Retrieval + rerank** | **560 ms** | **658 ms** | **736 ms** |
-| End to end (offline engine) | 560 ms | 659 ms | 737 ms |
+| Gate (deterministic screen) | 0 ms | 0 ms | 0 ms |
+| Retrieval (dense ∥ sparse → RRF) | 10 ms | 18 ms | 42 ms |
+| Rerank (cross-encoder, 20 → 5) | 608 ms | 754 ms | 825 ms |
+| Verify (citation checking) | 0 ms | 0 ms | 0 ms |
+| **End to end (offline engine)** | **618 ms** | **765 ms** | **835 ms** |
 
-**PASS — p95 is 44% of budget.** Reranking dominates, as expected: it is the only stage
+**PASS — p95 is 51% of budget.** Reranking dominates, as expected: it is the only stage
 that runs a transformer per candidate.
+
+Run-to-run variation on this hardware is real and worth stating rather than hiding: three
+consecutive repeats of the same 30 queries gave p50 587 / 605 / 627 ms. Quoting a single
+decimal-precise figure would imply a stability the measurement does not have.
+
+An earlier version of this document and the README quoted latency from two *different*
+runs — 560/658 here against 528/684 there — which is how a reader catches you not
+measuring carefully. Both now cite the run above.
 
 The spec's *streamed-start* p95 ≤6 s cannot be measured without the API key, since it is
 dominated by Claude's time-to-first-token. Retrieval and reranking — everything before
-the first token — complete in 658 ms at p95, leaving over 5 s of headroom.
+the first token — complete in 765 ms at p95, leaving over 5 s of headroom.
 
 Cold start is bounded by ONNX session initialisation, which is why the models are baked
 into the image and warmed at startup rather than on the first user's question.

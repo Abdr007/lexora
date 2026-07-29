@@ -145,8 +145,12 @@ class Settings(BaseSettings):
     langfuse_host: str = "https://cloud.langfuse.com"
 
     # ── service ──────────────────────────────────────────────────────────────
-    cors_allow_origins: str = "http://localhost:3000"
-    rate_limit: str = "10/minute"
+    cors_allow_origins: str = "http://localhost:3020"
+    # 10/minute throttled legitimate interactive use: the UI offers four one-click
+    # questions, and someone working through them plus a few follow-ups hits the wall
+    # inside a single minute -- as the demo pre-flight did, on its eighth request.
+    # 30/minute still throttles a scraper hard while leaving room for a person.
+    rate_limit: str = "30/minute"
     max_question_chars: int = 1000
     max_history_turns: int = 6
     request_timeout_s: float = 30.0

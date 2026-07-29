@@ -12,7 +12,7 @@ Hardening applied at this layer:
 
 * **CORS is an allowlist**, never ``*``. Credentials are disabled, so a browser on another
   origin cannot ride a user's session — there is no session, and the policy says so.
-* **Rate limited per IP** (slowapi, 10/min by default) on the two expensive endpoints.
+* **Rate limited per IP** (slowapi, 30/min by default) on the two expensive endpoints.
 * **Request bodies are bounded** by Pydantic (question length, history length and depth)
   *and* by a hard byte cap before parsing, so an oversized body is rejected before it is
   buffered.
@@ -214,6 +214,25 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONRe
     )
 
 
+def validated_law_id(law_id: str | None) -> str | None:
+    """Reject a filter naming an instrument the corpus does not contain.
+
+    An unknown id used to match nothing, and the gate then reported that as "not covered
+    by the indexed corpus" — a claim about the corpus that was simply false. The corpus
+    may cover the question perfectly well; the *filter* was wrong. Conflating the two
+    teaches a caller the wrong thing about the data, so say which it is.
+    """
+    if law_id is None:
+        return None
+    if law_id not in state.chunk_counts:
+        known = ", ".join(sorted(state.chunk_counts)) or "none — the index is empty"
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=f"Unknown law_id {law_id!r}. Valid values: {known}.",
+        )
+    return law_id
+
+
 def require_pipeline() -> Pipeline:
     if state.pipeline is None or not state.ready:
         raise HTTPException(
@@ -323,7 +342,7 @@ async def ask(
         lambda: pipeline.run(
             body.question,
             _to_turns(body, settings),
-            body.law_id,
+            validated_law_id(body.law_id),
             body.rerank,
         )
     )
@@ -355,7 +374,7 @@ async def ask_stream(
     del request
     settings = get_settings()
     turns = _to_turns(body, settings)
-    events = pipeline.run_stream(body.question, turns, body.law_id, body.rerank)
+    events = pipeline.run_stream(body.question, turns, validated_law_id(body.law_id), body.rerank)
     done = object()
 
     def advance() -> object:

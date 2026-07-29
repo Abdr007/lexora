@@ -70,6 +70,9 @@ stop: ## stop both (leaves other projects alone)
 status: ## show what is running
 	./scripts/dev.sh status
 
+demo: ## pre-flight every demo state against the running API (run this before presenting)
+	$(PY) scripts/demo_check.py
+
 # ── quality gates ────────────────────────────────────────────────────────────
 check: lint typecheck test web-check terraform-check ## every gate, fast (uses the existing venv)
 	@echo ""

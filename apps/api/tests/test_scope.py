@@ -77,3 +77,35 @@ class TestInScope:
         the check is restricted to jurisdictions.
         """
         assert check_scope("Is there a minimum wage?") is None
+
+
+class TestDegenerateInput:
+    """Input that is not language at all.
+
+    A cross-encoder scores emoji and bare numbers against legal passages, and the scores
+    are not small: "🙂🙂🙂" measured -1.16 and "42" measured +1.83 against a refusal floor
+    of -3.6, so both were answered with citations before this check existed. No threshold
+    can fix that, because the score is meaningless for input that is not language.
+    """
+
+    @pytest.mark.parametrize(
+        "question", ["🙂🙂🙂", "42", "...", "?", "q", "....  ....", "٣٤", "  -  ", "1000"]
+    )
+    def test_input_without_words_is_refused(self, question: str):
+        verdict = check_scope(question)
+        assert verdict is not None, f"{question!r} must not reach retrieval"
+        assert verdict.signal == "no-answerable-content"
+
+    @pytest.mark.parametrize(
+        "question",
+        [
+            "Is there a minimum wage?",
+            "What does Article 30 say?",
+            "ما هي مكافأة نهاية الخدمة؟",
+            "Do I get 30 days?",
+        ],
+    )
+    def test_real_questions_are_untouched(self, question: str):
+        """Including Arabic: the rule counts Unicode letters, not ASCII ones."""
+        verdict = check_scope(question)
+        assert verdict is None or verdict.signal != "no-answerable-content"

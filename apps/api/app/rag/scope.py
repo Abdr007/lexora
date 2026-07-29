@@ -94,8 +94,30 @@ _COMPILED_EMIRATES: Final = tuple(
 )
 
 
+# Any Unicode letter: word characters that are neither digits nor underscore. Written
+# this way rather than [a-z] so Arabic questions are treated as the real questions they
+# are -- the corpus is UAE law and its readers do not all type in English.
+_LETTER_RE: Final = re.compile(r"[^\W\d_]", re.UNICODE)
+_MIN_LETTERS: Final = 2
+
+
 def check_scope(question: str) -> ScopeVerdict | None:
     """Return a verdict when the question names a legal system outside the corpus."""
+    # Degenerate input first. A cross-encoder will happily score emoji or a bare number
+    # against legal passages, and those scores are not small: "🙂🙂🙂" scored -1.16 and
+    # "42" scored +1.83, both comfortably above the -3.6 refusal floor, so both were
+    # answered with citations. No threshold on a relevance score can fix that, because
+    # the score is meaningless for input that is not language. Refuse it deterministically
+    # before it reaches retrieval.
+    if len(_LETTER_RE.findall(question)) < _MIN_LETTERS:
+        return ScopeVerdict(
+            reason=(
+                "That question contains no words to interpret. Ask about UAE federal "
+                "labour law or Dubai tenancy law in a sentence, and the answer will cite "
+                "the articles it comes from."
+            ),
+            signal="no-answerable-content",
+        )
     for pattern, name in _COMPILED_FOREIGN:
         if pattern.search(question):
             return ScopeVerdict(
