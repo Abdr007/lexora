@@ -39,3 +39,9 @@ out/
 
 .DS_Store
 *.log
+
+# terraform working dirs
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
