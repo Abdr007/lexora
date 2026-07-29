@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pytest
-from tests.conftest import make_chunk, make_scored
 
 from app.core.models import CitationStatus
 from app.rag.verify import extract_citations, find_uncited_claims, verify_answer
+from tests.conftest import make_chunk, make_scored
 
 
 @pytest.fixture

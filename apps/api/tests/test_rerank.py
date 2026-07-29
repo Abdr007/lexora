@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import pytest
-from tests.conftest import make_chunk, make_scored
 
 from app.core.settings import Settings
 from app.rag.rerank import apply_refusal_gate, passthrough, rerank
 from app.rag.scope import check_scope
+from tests.conftest import make_chunk, make_scored
 
 
 def scored(score: float, article_no: int = 51):

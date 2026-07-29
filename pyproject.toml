@@ -74,7 +74,10 @@ ignore = [
 "apps/api/app/main.py"         = ["B008"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["app"]
+# Both are first-party. Without naming `tests` explicitly, ruff infers it from the
+# working directory — which resolved differently on CI than locally and produced an
+# import-order failure that could not be reproduced on a developer machine.
+known-first-party = ["app", "tests"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
