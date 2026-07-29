@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T17:10:26+00:00",
+  "generated_at": "2026-07-29T19:36:10+00:00",
   "engine": "offline-extractive",
   "judge_model": null,
   "reranker": "Xenova/ms-marco-MiniLM-L-6-v2",
@@ -41,14 +41,14 @@
   },
   "latency_ms": {
     "no_rerank": {
-      "p50_ms": 5.3,
-      "p95_ms": 8.4,
-      "max_ms": 102.9
+      "p50_ms": 5.9,
+      "p95_ms": 8.8,
+      "max_ms": 94.2
     },
     "with_rerank": {
-      "p50_ms": 528.0,
-      "p95_ms": 684.1,
-      "max_ms": 756.0
+      "p50_ms": 546.8,
+      "p95_ms": 686.2,
+      "max_ms": 750.9
     }
   },
   "refusal_calibration": {
@@ -57,5 +57,73 @@
     "separation": -6.868,
     "floor": -0.14,
     "active_floor": -3.6
-  }
+  },
+  "chunking_experiment": [
+    {
+      "target_tokens": 300,
+      "encoder_window_enforced": true,
+      "chunks": 218,
+      "tokens_mean": 162.02293577981652,
+      "tokens_max": 307,
+      "articles_split": 33,
+      "over_window": 0,
+      "hit_rate_at_1": 0.7609,
+      "hit_rate_at_5": 0.9348
+    },
+    {
+      "target_tokens": 300,
+      "encoder_window_enforced": false,
+      "chunks": 218,
+      "tokens_mean": 162.02293577981652,
+      "tokens_max": 307,
+      "articles_split": 33,
+      "over_window": 0,
+      "hit_rate_at_1": 0.7609,
+      "hit_rate_at_5": 0.9348
+    },
+    {
+      "target_tokens": 600,
+      "encoder_window_enforced": true,
+      "chunks": 181,
+      "tokens_mean": 182.05524861878453,
+      "tokens_max": 510,
+      "articles_split": 13,
+      "over_window": 0,
+      "hit_rate_at_1": 0.7391,
+      "hit_rate_at_5": 0.9348
+    },
+    {
+      "target_tokens": 600,
+      "encoder_window_enforced": false,
+      "chunks": 172,
+      "tokens_mean": 188.36046511627907,
+      "tokens_max": 598,
+      "articles_split": 5,
+      "over_window": 14,
+      "hit_rate_at_1": 0.7391,
+      "hit_rate_at_5": 0.9348
+    },
+    {
+      "target_tokens": 1000,
+      "encoder_window_enforced": true,
+      "chunks": 181,
+      "tokens_mean": 182.05524861878453,
+      "tokens_max": 510,
+      "articles_split": 13,
+      "over_window": 0,
+      "hit_rate_at_1": 0.7391,
+      "hit_rate_at_5": 0.9348
+    },
+    {
+      "target_tokens": 1000,
+      "encoder_window_enforced": false,
+      "chunks": 168,
+      "tokens_mean": 191.88690476190476,
+      "tokens_max": 995,
+      "articles_split": 1,
+      "over_window": 13,
+      "hit_rate_at_1": 0.7391,
+      "hit_rate_at_5": 0.9348
+    }
+  ]
 }

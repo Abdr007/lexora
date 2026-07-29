@@ -92,6 +92,10 @@ ci: ## reproduce CI locally in a clean-room venv (slow, but catches what `check`
 	@/tmp/lexora-ci-venv/bin/mypy
 	@/tmp/lexora-ci-venv/bin/python -m pytest -q
 	@$(MAKE) --no-print-directory terraform-check
+	@echo "── retrieval quality gate (same thresholds as CI) ───────────────"
+	@/tmp/lexora-ci-venv/bin/python eval/build_questions.py >/dev/null
+	@/tmp/lexora-ci-venv/bin/python eval/ragas_run.py >/dev/null
+	@/tmp/lexora-ci-venv/bin/python scripts/quality_gate.py
 	@cd apps/web && npx tsc --noEmit && npx eslint . --max-warnings 0 && npm run build >/dev/null
 	@echo ""
 	@echo "  clean-room CI passed — safe to push"

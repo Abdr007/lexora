@@ -61,32 +61,13 @@ jobs:
       - name: pytest
         run: apps/api/.venv/bin/python -m pytest
 
-      # A regression in retrieval quality should fail the build like any other test.
-      # The thresholds are the numbers recorded in AUDIT.md, minus a small tolerance.
+      # A regression in retrieval quality fails the build like any other test.
+      # The gate lives in scripts/quality_gate.py so CI and `make ci` run identical
+      # code — a duplicated inline script is a gate that drifts.
       - name: Evaluate retrieval and gate on it
         run: |
           apps/api/.venv/bin/python eval/ragas_run.py
-          apps/api/.venv/bin/python - <<'PY'
-          import json, pathlib, sys
-          report = json.loads(pathlib.Path("eval/results/latest.json").read_text())
-          arm = report["configurations"]["with_rerank"]
-          floors = {
-              "hit_rate_at_5": 0.90,
-              "hit_rate_at_1": 0.70,
-              "mrr": 0.78,
-              "refusal_accuracy": 0.78,
-          }
-          failed = [
-              f"{name}: {arm[name]:.4f} < {floor}"
-              for name, floor in floors.items()
-              if arm[name] < floor
-          ]
-          if arm["false_refusals"] > 0:
-              failed.append(f"false_refusals: {arm['false_refusals']} > 0")
-          for line in failed:
-              print(f"QUALITY GATE FAILED  {line}")
-          sys.exit(1 if failed else 0)
-          PY
+          apps/api/.venv/bin/python scripts/quality_gate.py
 
       - uses: actions/upload-artifact@v4
         if: always()

@@ -23,8 +23,13 @@ from pathlib import Path
 from typing import Any, Final
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT / "apps" / "api") not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT / "apps" / "api"))
+# Both the repo root and the API package must be importable: these scripts import
+# `eval.*` (sibling modules) and `app.*` (the service). Doing it here rather than
+# relying on PYTHONPATH means the script runs correctly from any working directory
+# and under any runner — a missing PYTHONPATH previously broke the CI eval step only.
+for _path in (REPO_ROOT, REPO_ROOT / "apps" / "api"):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
 from app.core.claude import engine_name, is_online  # noqa: E402
 from app.core.settings import get_settings  # noqa: E402
