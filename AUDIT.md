@@ -341,6 +341,33 @@ lock and skips with an actionable message instead of failing with an unrelated
 
 ---
 
+## 6.4 Container memory — measured, and it decided the host
+
+Host RSS is not container RSS. Measured on the host the service sits at **155 MB**; the
+same code in a container peaks at **524 MB**, because onnxruntime's allocators and the
+two model sessions do not share the host's page cache.
+
+| Memory cap | Idle | Peak under load | Result |
+|---|---|---|---|
+| 512 MB | 436–450 MB | — | **OOM-killed** |
+| 1 GB | 444 MB | **524 MB** | passes |
+
+Four tuning variants were tried at 512 MB and all four were killed:
+`OMP_NUM_THREADS=1`, `ORT_NUM_THREADS=1`, `ORT_DISABLE_MEM_ARENA=1`, and
+`MALLOC_ARENA_MAX=2` + trim threshold. Switching the vector store from embedded to
+Qdrant Cloud did not help either — the memory is the ONNX runtime and the two sessions,
+not the index.
+
+**Consequence:** Render's free tier (500 MB) cannot host this service, and that is a
+property of running a cross-encoder, not a defect. The deployment target moved to a host
+with 2 GB. The alternative — dropping the cross-encoder to fit — would remove the single
+component the evaluation shows is worth the most (§5.1: refusal accuracy 0.33 → 0.80).
+
+This was caught by building the image and booting it under a `--memory=512m` cap before
+deploying, rather than by a failed deploy with an opaque log.
+
+---
+
 ## 7. Performance
 
 Retrieval + rerank budget: **≤1.5 s on CPU**. 30 queries, warm process.

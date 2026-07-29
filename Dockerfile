@@ -38,13 +38,26 @@ COPY var/index /app/var/index
 
 ENV PYTHONPATH=/app/apps/api
 
-# Bake the embedding and reranking models into the image.
+# Bake BOTH the models and the materialised vector store into the image.
+#
+# The models matter for cold-start latency. The vector store matters for whether the
+# container starts at all: on a fresh filesystem the collection is empty, so the first
+# boot would embed all 181 chunks before the health check could pass — tens of seconds
+# on a warm laptop and minutes on a shared free-tier CPU, which reads to the platform as
+# a failed deploy rather than a slow one.
+#
+# Doing it here moves that work to build time, where it is allowed to be slow. Startup
+# then only opens an already-populated store.
 RUN python -c "\
 from app.core.embedding import embed_query; \
 from app.rag.rerank import get_cross_encoder; \
+from app.rag.index import ensure_vector_store; \
+from app.core.vectorstore import close_client; \
 embed_query('warm up the session'); \
 get_cross_encoder(); \
-print('models cached in image')"
+n = ensure_vector_store(); \
+close_client(); \
+print(f'baked: models cached, {n} vector points')"
 
 # Run as a non-root user. Spaces and Cloud Run both allow it, and there is no
 # reason for an inference service to be root.
