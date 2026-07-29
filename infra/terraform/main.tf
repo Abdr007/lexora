@@ -77,9 +77,10 @@ resource "google_cloud_run_v2_service" "lexora" {
 
       resources {
         limits = {
-          # The cross-encoder needs headroom; 2Gi is the smallest size that runs
-          # it comfortably. Doubling memory doubles GB-second consumption, so this
-          # is the number to watch against the free allowance.
+          # Measured, not guessed: the container peaks at 524 MB under load and is
+          # OOM-killed at a 512 MB cap (AUDIT.md 6.4), so 1Gi is the floor and 2Gi
+          # is the first standard size above it. Doubling memory doubles GB-second
+          # consumption, so this is the number to watch against the free allowance.
           memory = "2Gi"
           cpu    = "2"
         }

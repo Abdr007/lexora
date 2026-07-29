@@ -106,7 +106,7 @@ disk for the ONNX models.
 make setup          # both toolchains
 make corpus         # download + verify the official PDFs
 make index          # parse → chunk → embed → Qdrant + BM25
-make dev            # API on :7861, web on :3020
+make dev            # API on :7862, web on :3020
 ```
 
 Open <http://127.0.0.1:3020>. Ports are deliberately not 8000/3000 — those are usually
@@ -173,11 +173,19 @@ The Terraform module provisions the Cloud Run service, a dedicated service accou
 the Anthropic key in Secret Manager — and sets the three knobs (`min_instances`,
 `memory`, `max_instances`) that actually decide whether this stays inside the free tier.
 
-### API — Hugging Face Spaces (no card, ever)
+### A note on the host: this needs 1 GB
 
-Create a **Docker** Space, push this repo, and it serves on port 7860 unchanged. The
-same image runs on both: the entrypoint honours `$PORT` when Cloud Run injects one and
-falls back to 7860 otherwise.
+Measured, not estimated. In a container the service peaks at **524 MB** — onnxruntime's
+allocators and the two model sessions do not share the host's page cache, so host RSS
+(155 MB) badly understates it. At a 512 MB cap it is OOM-killed, and thread-count, arena
+and malloc-trim tuning do not close the gap. Details and the full table in
+[AUDIT.md §6.4](AUDIT.md).
+
+That rules out the 512 MB free tiers — Render's included. The alternative host is a
+Hugging Face **Docker** Space ([infra/DEPLOY-SPACES.md](infra/DEPLOY-SPACES.md)), which
+has the RAM but now requires a PRO subscription. Cloud Run's always-free allowance covers
+this workload at 2 GB, so it is the recommended target. The image is identical either
+way: the entrypoint honours `$PORT` when one is injected and falls back to 7860.
 
 ### Web — Vercel
 

@@ -1,22 +1,28 @@
 # Deploying Lexora to Hugging Face Spaces
 
-**No card, ever.** A free HF account is the only requirement.
+> **Read this first.** An earlier version of this document said "no card, ever" and
+> claimed 16 GB on the free tier. That was wrong on both counts and is corrected below.
+> **Docker** Spaces — the kind this project needs, because it builds a Dockerfile —
+> require a **PRO subscription ($9/month)**. Only *Static* Spaces remain free, and a
+> static host cannot run a Python API. Cloud Run is the cheaper path: its always-free
+> allowance covers this workload at no cost.
 
-For this workload Spaces is arguably the better host: the free CPU tier gives **2 vCPU
-and 16 GB RAM**, against Cloud Run's 2 GB — and a cross-encoder appreciates the headroom.
-
-| | Spaces (free) | Cloud Run (always-free) |
+| | Spaces (Docker) | Cloud Run (always-free) |
 |---|---|---|
-| Card required | **no** | yes, for verification |
-| RAM | **16 GB** | 2 GB |
-| Cost | **$0, no asterisk** | $0 compute + ~$0.08/mo image storage |
+| Card required | yes | yes, for verification |
+| Cost | **$9/month** (PRO) | **$0** compute + ~$0.08/mo image storage |
+| RAM | 16 GB | 2 GB |
 | Sleeps when idle | after 48 h | scales to zero immediately |
 | Cold start | ~30 s | ~15–25 s |
 | Résumé keyword | Docker, Hugging Face | **GCP, Cloud Run** |
 
-The same image runs on both — the entrypoint honours `$PORT` when Cloud Run injects one
-and falls back to 7860 otherwise — so this is not a fork in the road. Deploy to Spaces
-now, add Cloud Run later when you want the GCP keyword.
+Both clear the bar that matters: the service peaks at **524 MB** in a container and is
+OOM-killed under 512 MB (AUDIT.md §6.4), which is what removed the free 512 MB tiers from
+the list. 2 GB is measured headroom, not a guess.
+
+The same image runs on either — the entrypoint honours `$PORT` when one is injected and
+falls back to 7860 — so this is not a fork in the road. Use
+[DEPLOY-CLOUDRUN.md](DEPLOY-CLOUDRUN.md) unless you already pay for PRO.
 
 ---
 

@@ -140,6 +140,9 @@ Recorded because they are the reason the checks above exist.
 | ruff resolved `tests` as first-party locally, third-party on CI | Import-order failure that could not be reproduced on a developer machine | `known-first-party = ["app", "tests"]` |
 | Terraform `for_each = [1]` | A list of number is not an iterable collection in current Terraform | `toset([...])` |
 | Eval scripts assumed `PYTHONPATH` contained the repo root | `ModuleNotFoundError: eval` on any runner that did not set it | Each script puts both paths on `sys.path` itself |
+| **`dev.sh` identified its own processes by command line** | Two projects on this machine run `python -m uvicorn app.main:app --port N`, so the pattern matched a *neighbouring project's* API. `status` reported that neighbour as "Lexora, up" while Lexora was not running at all, `start` saw the busy port and skipped starting, and `stop` would have sent SIGTERM to the other project. Only the working directory distinguishes them | Every lookup now resolves the pid listening on the port and requires its `cwd` to be inside this repo; `start` names the foreign owner and refuses rather than assuming success. Port moved to 7862, since 7860 *and* 7861 were taken |
+| **`lsof` exit status aborted `dev.sh` mid-run** | `lsof` exits non-zero when a port is free — the *normal* answer — and under `set -euo pipefail` that propagated out of the command substitution and killed the script. `stop` signalled the first service, hit a free port on the second lookup and died, reporting success while the API it had never signalled kept running and kept the Qdrant lock | `|| true` on every lookup, and `stop` now waits for the process to actually exit, escalating to SIGKILL and verifying. "Signal sent" is not "process stopped" |
+| **23 integration tests silently skipped** | The `index_available` probe opened a *second* `QdrantClient` on the locked store. The constructor opens the lock file and only then raises, so the handle was orphaned — surfacing as an unraisable `ResourceWarning` that failed the run under `-W error` while pointing at a lock file. Combined with the `stop` defect above, the whole HTTP suite — contract, SSE, CORS, injection — skipped on any machine where `make dev` had been run, and the DoD's "verified through the HTTP API" rested on 126 of 149 tests | Probe takes the same `portalocker` advisory lock on a handle it owns, inside `with`. Remote Qdrant skips the check entirely. Now **149 passed, 0 skipped** with the store free, and a clean exit-0 skip when it is genuinely held |
 
 ---
 
@@ -341,7 +344,7 @@ lock and skips with an actionable message instead of failing with an unrelated
 
 ---
 
-## 6.4 Container memory — measured, and it decided the host
+### 6.4 Container memory — measured, and it decided the host
 
 Host RSS is not container RSS. Measured on the host the service sits at **155 MB**; the
 same code in a container peaks at **524 MB**, because onnxruntime's allocators and the

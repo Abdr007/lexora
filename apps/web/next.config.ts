@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
  * font or image, and `connect-src` is widened at build time only to the API origin
  * the deployment actually talks to.
  */
-const apiOrigin = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:7861";
+const apiOrigin = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:7862";
 const isDev = process.env.NODE_ENV !== "production";
 
 const csp = [

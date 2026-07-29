@@ -28,28 +28,55 @@ def corpus_available(settings: Settings) -> bool:
     return settings.pdf_dir.exists() and any(settings.pdf_dir.glob("*.pdf"))
 
 
+def _lock_held_by_another_process(lock: Path) -> bool:
+    """Whether another process holds the embedded store's advisory lock.
+
+    Deliberately does *not* construct a ``QdrantClient`` to find out. That constructor
+    opens the lock file and only then raises, leaving the caller no reference with which
+    to close the handle; the orphan surfaces as an unraisable ``ResourceWarning`` at
+    interpreter shutdown, which under ``-W error`` fails the whole run and points at a
+    lock file rather than at the process actually holding it. The previous version of
+    this fixture did exactly that, and its docstring claimed it *prevented* the warning.
+
+    Taking the same advisory lock on our own file object keeps ownership of the handle
+    here, where ``with`` closes it on every path. ``portalocker`` is what qdrant-client
+    itself uses, so this tests the same lock and not merely a similar one.
+    """
+    try:
+        import portalocker
+    except ImportError:  # pragma: no cover - qdrant-client always provides it
+        return False
+    try:
+        with lock.open("r+", encoding="utf-8") as handle:
+            try:
+                portalocker.lock(handle, portalocker.LOCK_EX | portalocker.LOCK_NB)
+            except portalocker.exceptions.BaseLockException:
+                return True
+            portalocker.unlock(handle)
+    except OSError:
+        return False
+    return False
+
+
 @pytest.fixture(scope="session")
 def index_available(settings: Settings) -> bool:
     """Whether the on-disk index is present AND usable by this process.
 
-    Embedded Qdrant takes an exclusive lock on its storage directory, so a running
-    `make dev` makes the store unopenable here. Without this check the suite fails
-    with an unrelated ResourceWarning about a lock file, which sends you looking in
-    entirely the wrong place.
+    Embedded Qdrant allows a single writer, so a running `make dev` makes the store
+    unopenable here. Detect that and skip with an instruction, rather than failing
+    somewhere unrelated.
     """
     if not (settings.chunks_path.exists() and settings.bm25_path.exists()):
         return False
+    # A configured remote Qdrant is not lock-protected and supports concurrent readers.
+    if getattr(settings, "qdrant_url", None):
+        return True
     lock = settings.qdrant_path / ".lock"
-    if lock.exists():
-        try:
-            from qdrant_client import QdrantClient
-
-            QdrantClient(path=str(settings.qdrant_path)).close()
-        except Exception:
-            pytest.skip(
-                "var/qdrant is locked by another process. Embedded Qdrant allows one "
-                "writer at a time — run `make stop` before `make test`."
-            )
+    if lock.exists() and _lock_held_by_another_process(lock):
+        pytest.skip(
+            "var/qdrant is locked by another process. Embedded Qdrant allows one "
+            "writer at a time — run `make stop` before `make test`."
+        )
     return True
 
 
