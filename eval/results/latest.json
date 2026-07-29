@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T22:05:30+00:00",
+  "generated_at": "2026-07-29T22:29:41+00:00",
   "engine": "offline-extractive",
   "judge_model": null,
   "reranker": "Xenova/ms-marco-MiniLM-L-6-v2",
@@ -41,14 +41,14 @@
   },
   "latency_ms": {
     "no_rerank": {
-      "p50_ms": 7.0,
-      "p95_ms": 8.6,
-      "max_ms": 106.9
+      "p50_ms": 10.3,
+      "p95_ms": 17.9,
+      "max_ms": 239.5
     },
     "with_rerank": {
-      "p50_ms": 681.2,
-      "p95_ms": 841.6,
-      "max_ms": 1018.1
+      "p50_ms": 777.2,
+      "p95_ms": 1197.4,
+      "max_ms": 1764.9
     }
   },
   "refusal_calibration": {

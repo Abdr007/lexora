@@ -394,6 +394,13 @@ Run-to-run variation on this hardware is real and worth stating rather than hidi
 consecutive repeats of the same 30 queries gave p50 587 / 605 / 627 ms. Quoting a single
 decimal-precise figure would imply a stability the measurement does not have.
 
+`eval/results/latest.json` carries a **different** latency measurement and reads higher —
+around p50 780 / p95 1200 ms. That is not a contradiction: the eval sweeps all 61
+questions including the first, cold call, and runs immediately after building the index,
+while the table above is 30 queries against a warmed process. Two methods, two numbers,
+both real. The table is the one to quote for steady-state serving; the eval figure is the
+one to quote for a batch run from cold.
+
 An earlier version of this document and the README quoted latency from two *different*
 runs — 560/658 here against 528/684 there — which is how a reader catches you not
 measuring carefully. Both now cite the run above.
