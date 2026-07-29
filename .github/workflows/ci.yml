@@ -22,7 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v9
+      # setup-uv publishes no floating major tag, so this is pinned exactly;
+      # the others track a major that GitHub keeps pointed at a Node 24 release.
+      - uses: astral-sh/setup-uv@v9.0.0
         with:
           enable-cache: true
 
@@ -103,7 +105,7 @@ jobs:
     needs: api
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v9
+      - uses: astral-sh/setup-uv@v9.0.0
       - name: Rebuild the portable index the image copies in
         run: |
           uv venv --python 3.12 apps/api/.venv
