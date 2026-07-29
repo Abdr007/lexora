@@ -29,7 +29,15 @@ rejected, that is recorded too: an audit that only lists successes is a brochure
 
 ## 2. Quality gates — zero warnings
 
-Run with `make check`. Every one is enforced in CI on every push.
+Run with `make check` for speed, or **`make ci`** to reproduce CI exactly. Every gate is
+enforced by GitHub Actions on every push.
+
+`make ci` exists because `make check` reuses an already-resolved virtualenv, and three
+separate failures were invisible that way: a dependency constraint that never
+re-resolved, an import order that depended on the working directory, and a model cache
+that was warm locally and cold on the runner. `make ci` resolves from scratch in a
+throwaway venv and runs the same `scripts/quality_gate.py` that CI runs — one gate, not
+two copies that drift.
 
 | Gate | Command | Result |
 |---|---|---|
@@ -40,6 +48,9 @@ Run with `make check`. Every one is enforced in CI on every push.
 | Web types | `tsc --noEmit` | **clean** |
 | Web lint | `eslint . --max-warnings 0` | **clean** |
 | Web build | `next build` | **compiled successfully, 5/5 pages** |
+| Terraform | `fmt -check` + `validate` | **configuration is valid** |
+| Container | `docker build` + boot until healthy | **`status: ok` on linux/amd64** |
+| Retrieval quality | `scripts/quality_gate.py` | **all 5 floors cleared** |
 
 `filterwarnings = ["error", ...]` — a Python warning fails the suite. Four suppressions
 exist, each with the reason inline in `pyproject.toml`; the load-bearing one is
@@ -124,6 +135,11 @@ Recorded because they are the reason the checks above exist.
 | `act as` matched "Can I act as a representative…" | **False positive** on a legitimate Article 54 question | Pattern tightened to require an AI-persona target |
 | Blank-only question accepted | `min_length=1` accepts `"   "` | Validator added |
 | Deprecated Starlette status constant | Deprecation warning | Replaced |
+| **Reranker tokenizer missed on a cold cache** | `get_reranker_tokenizer()` globs the model cache, so on a cold cache it ran *before* anything had downloaded the reranker, found nothing, and `lru_cache` memoised the miss for the process lifetime. Truncation stayed silently disabled, passages exceeded the model window, the runtime truncated per batch — and a score began depending on which documents shared its batch, **up to 4.3 apart**. Every cold container was affected | Load the encoder before searching for its tokenizer; never cache a miss. Test now asserts its own precondition |
+| `httpx2>=0.1,<2.0` matched no release | The package publishes `<0.1` then `>=2.0`. Passed locally only because it was installed before the constraint was written, so it never re-resolved | Corrected to `>=2.9,<3.0` |
+| ruff resolved `tests` as first-party locally, third-party on CI | Import-order failure that could not be reproduced on a developer machine | `known-first-party = ["app", "tests"]` |
+| Terraform `for_each = [1]` | A list of number is not an iterable collection in current Terraform | `toset([...])` |
+| Eval scripts assumed `PYTHONPATH` contained the repo root | `ModuleNotFoundError: eval` on any runner that did not set it | Each script puts both paths on `sys.path` itself |
 
 ---
 

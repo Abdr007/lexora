@@ -11,6 +11,8 @@ short_description: Grounded RAG over UAE labour and Dubai tenancy law, with veri
 
 # Lexora
 
+[![CI](https://github.com/Abdr007/lexora/actions/workflows/ci.yml/badge.svg)](https://github.com/Abdr007/lexora/actions/workflows/ci.yml)
+
 **Grounded RAG over UAE labour law and Dubai tenancy law.** Every claim carries the
 article it came from, every citation opens the exact clause, and when the indexed law
 does not cover a question the system says so — and shows the passages it rejected, with
