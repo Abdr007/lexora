@@ -81,8 +81,14 @@ class TestCrossEncoder:
 
         This is what makes the ~39% latency saving free rather than a quality trade.
         """
-        from app.rag.rerank import _score
+        from app.rag.rerank import _score, get_reranker_tokenizer
 
+        # The guarantee only holds when passages are truncated to a fixed cap. Without
+        # it the runtime truncates per batch and a score depends on its batch-mates —
+        # the exact failure this assertion is here to catch.
+        assert get_reranker_tokenizer(settings) is not None, (
+            "reranker tokenizer unavailable; truncation would be silently disabled"
+        )
         documents = [chunk.text for chunk in chunks[:12]]
         query = "end of service benefits for a full-time worker"
         bucketed = _score(query, documents, settings)

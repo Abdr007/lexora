@@ -22,8 +22,8 @@ export PYTHONPATH := apps/api
 
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-api setup-web corpus index reindex warm dev api web stop status \
-        check lint typecheck test fmt web-check eval eval-judge calibrate chunking \
-        questions docker-build docker-run clean
+        check ci ci-cold lint typecheck test fmt web-check terraform-check eval eval-judge \
+        calibrate chunking questions docker-build docker-run clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -71,9 +71,41 @@ status: ## show what is running
 	./scripts/dev.sh status
 
 # ── quality gates ────────────────────────────────────────────────────────────
-check: lint typecheck test web-check ## every gate, as CI runs them
+check: lint typecheck test web-check terraform-check ## every gate, fast (uses the existing venv)
 	@echo ""
 	@echo "  all gates passed"
+
+# Run this before pushing. `make check` uses the venv you already have, which is why
+# three separate CI failures were invisible locally: a dependency constraint that never
+# re-resolved, an import order that depended on the working directory, and a model cache
+# that was warm here and cold there. This target resolves dependencies from scratch in a
+# throwaway venv, exactly as a fresh runner does.
+ci: ## reproduce CI locally in a clean-room venv (slow, but catches what `check` cannot)
+	@echo "── clean-room dependency resolution ─────────────────────────────"
+	@rm -rf /tmp/lexora-ci-venv
+	@uv venv --python 3.12 /tmp/lexora-ci-venv >/dev/null
+	@uv pip install --python /tmp/lexora-ci-venv/bin/python -e "apps/api[dev]" >/dev/null
+	@echo "  dependencies resolve from scratch"
+	@echo "── gates ────────────────────────────────────────────────────────"
+	@/tmp/lexora-ci-venv/bin/ruff check .
+	@/tmp/lexora-ci-venv/bin/ruff format --check .
+	@/tmp/lexora-ci-venv/bin/mypy
+	@/tmp/lexora-ci-venv/bin/python -m pytest -q
+	@$(MAKE) --no-print-directory terraform-check
+	@cd apps/web && npx tsc --noEmit && npx eslint . --max-warnings 0 && npm run build >/dev/null
+	@echo ""
+	@echo "  clean-room CI passed — safe to push"
+
+# The one divergence `ci` cannot simulate cheaply: a cold model cache. Running this
+# deletes ~1.6 GB and re-downloads, so it is separate and deliberate.
+ci-cold: ## like `ci`, but with an empty ONNX model cache
+	rm -rf var/models
+	$(MAKE) ci
+
+terraform-check: ## fmt + validate the Cloud Run module (no cloud credentials needed)
+	terraform fmt -check -recursive infra/terraform
+	terraform -chdir=infra/terraform init -backend=false -input=false >/dev/null
+	terraform -chdir=infra/terraform validate -no-color
 
 lint: ## ruff, zero warnings
 	apps/api/.venv/bin/ruff check .

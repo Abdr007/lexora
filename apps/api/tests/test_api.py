@@ -8,6 +8,8 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.settings import Settings
+
 pytestmark = pytest.mark.integration
 
 
@@ -118,9 +120,16 @@ class TestHardening:
         assert headers["referrer-policy"] == "no-referrer"
         assert headers["x-request-id"]
 
-    def test_cors_allows_only_configured_origins(self, client: TestClient):
-        allowed = client.get("/api/health", headers={"Origin": "http://localhost:3020"})
-        assert allowed.headers.get("access-control-allow-origin") == "http://localhost:3020"
+    def test_cors_allows_only_configured_origins(self, client: TestClient, settings: Settings):
+        """Read the allowlist from settings rather than hardcoding a developer's origin.
+
+        The previous version asserted `http://localhost:3020`, which exists only in a
+        local `.env`. On CI, where no `.env` is present, the default applies and the test
+        failed for a reason that had nothing to do with CORS.
+        """
+        allowed_origin = settings.cors_origins[0]
+        allowed = client.get("/api/health", headers={"Origin": allowed_origin})
+        assert allowed.headers.get("access-control-allow-origin") == allowed_origin
         hostile = client.get("/api/health", headers={"Origin": "https://evil.example"})
         assert "access-control-allow-origin" not in hostile.headers
 

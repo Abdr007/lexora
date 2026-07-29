@@ -21,7 +21,6 @@ knowing when *not* to answer is the feature this project exists to demonstrate.
 
 from __future__ import annotations
 
-import functools
 import logging
 import threading
 from dataclasses import dataclass
@@ -290,24 +289,54 @@ def apply_refusal_gate(
     )
 
 
-@functools.lru_cache(maxsize=2)
-def get_reranker_tokenizer(settings: Settings | None = None) -> Tokenizer | None:
-    """The reranker's own tokenizer, used only to cap passage length.
+_TOKENIZERS: dict[str, Tokenizer] = {}
 
-    Returns ``None`` when it cannot be located: truncation is an optimisation, and
-    losing it should slow the reranker down, never stop it from running.
+
+def get_reranker_tokenizer(settings: Settings | None = None) -> Tokenizer | None:
+    """The reranker's own tokenizer, used to cap passage length before scoring.
+
+    Two details here are load-bearing, and both were found by a CI failure that could
+    not be reproduced locally:
+
+    1. **The cross-encoder is loaded first.** The tokenizer is located by globbing the
+       model cache, so on a cold cache — a fresh container, a CI runner with no restored
+       cache — the file does not exist yet because nothing has downloaded it. Forcing the
+       encoder to load first guarantees the files are on disk before the search.
+
+    2. **A miss is never cached.** With ``lru_cache`` a single early miss was memoised for
+       the lifetime of the process, so truncation stayed silently disabled long after the
+       model had arrived. Only successful lookups are cached.
+
+    Why it matters that truncation actually happens: without it, passages exceed the
+    model's window and the runtime truncates per batch, which makes a score depend on
+    which other documents happen to share its batch. Length bucketing then stops being a
+    pure reordering. With truncation on, scores are identical across batch sizes —
+    measured at max |delta| 0.0000 over the corpus.
     """
     cfg = settings or get_settings()
+    cached = _TOKENIZERS.get(cfg.reranker_model)
+    if cached is not None:
+        return cached
+
+    # Ensure the model — and therefore its tokenizer.json — is on disk before looking.
+    get_cross_encoder(cfg)
+
     stem = cfg.reranker_model.split("/")[-1]
     candidates = [
         path for path in cfg.models_cache_dir.rglob("tokenizer.json") if stem in str(path)
     ]
     if not candidates:
         logger.warning(
-            "no cached tokenizer for %s; reranking without truncation", cfg.reranker_model
+            "no cached tokenizer for %s under %s; reranking without truncation, which "
+            "makes scores batch-dependent",
+            cfg.reranker_model,
+            cfg.models_cache_dir,
         )
         return None
-    return Tokenizer.from_file(str(max(candidates, key=lambda path: path.stat().st_mtime)))
+
+    tokenizer = Tokenizer.from_file(str(max(candidates, key=lambda path: path.stat().st_mtime)))
+    _TOKENIZERS[cfg.reranker_model] = tokenizer
+    return tokenizer
 
 
 def reset_cross_encoder() -> None:
@@ -315,4 +344,4 @@ def reset_cross_encoder() -> None:
     global _ENCODER  # noqa: PLW0603 - mirrors get_cross_encoder
     with _LOCK:
         _ENCODER = None
-    get_reranker_tokenizer.cache_clear()
+    _TOKENIZERS.clear()
