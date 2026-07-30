@@ -23,9 +23,12 @@ REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 
 # Files that must be inside the image. If any is missing the Space builds and then
 # reports `degraded`, which is a slow way to discover a missing artefact.
+SPACE_CONFIG: Final = Path(".hf-space.yml")
+
 REQUIRED: Final = (
     Path("Dockerfile"),
     Path("README.md"),
+    SPACE_CONFIG,
     Path("var/index/chunks.jsonl"),
     Path("var/index/bm25.json"),
     Path("corpus/manifest.json"),
@@ -90,18 +93,41 @@ def explain_push_failure(stderr: str) -> str:
     return "push failed. The remote's reason is above."
 
 
+def push_with_space_config(branch: str) -> subprocess.CompletedProcess[str]:
+    """Push to the Space with its configuration prepended to README.md.
+
+    The Hub reads a Space's configuration from README.md front matter, and GitHub renders
+    that same front matter as a table above the project's own title — a block of
+    deployment plumbing where the first line of the project should be. Keeping it in
+    .hf-space.yml and prepending it here gives each host what it needs.
+
+    The commit this makes exists only on the Space. It is dropped locally straight after,
+    whether or not the push succeeded, so the branch pushed to GitHub never carries it.
+    """
+    readme = REPO_ROOT / "README.md"
+    original = readme.read_text(encoding="utf-8")
+    config = (REPO_ROOT / SPACE_CONFIG).read_text(encoding="utf-8").strip()
+    readme.write_text(f"---\n{config}\n---\n\n{original}", encoding="utf-8")
+
+    run("git", "add", "README.md")
+    run("git", "commit", "-m", "Space configuration (generated from .hf-space.yml)")
+    try:
+        return run("git", "push", "--force", "space", f"{branch}:main", check=False)
+    finally:
+        # --hard is safe here: the only thing it can discard is the commit made above,
+        # and the tree was already clean when this function was called.
+        run("git", "reset", "--hard", "HEAD~1", check=False)
+
+
 def preflight() -> list[str]:
     problems: list[str] = []
     for relative in REQUIRED:
         if not (REPO_ROOT / relative).exists():
             problems.append(f"missing {relative} — run `make index`")
 
-    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-    if not readme.startswith("---"):
-        problems.append("README.md has no Spaces YAML frontmatter (sdk: docker)")
-        return problems
-
-    problems.extend(frontmatter_problems(readme.split("---")[1]))
+    config = REPO_ROOT / SPACE_CONFIG
+    if config.exists():
+        problems.extend(frontmatter_problems(config.read_text(encoding="utf-8")))
     return problems
 
 
@@ -165,7 +191,7 @@ def main(argv: list[str] | None = None) -> int:
 
     branch = run("git", "branch", "--show-current").stdout.strip() or "master"
     print(f"  pushing {branch} -> space/main …")
-    pushed = run("git", "push", "--force", "space", f"{branch}:main", check=False)
+    pushed = push_with_space_config(branch)
     if pushed.returncode != 0:
         stderr = pushed.stderr.strip()
         print(stderr[-1500:])

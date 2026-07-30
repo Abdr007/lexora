@@ -1,14 +1,3 @@
----
-title: Lexora
-emoji: 📜
-colorFrom: indigo
-colorTo: gray
-sdk: docker
-app_port: 7860
-pinned: false
-short_description: "UAE labour & Dubai tenancy law: cited answers, or refusal"
----
-
 # Lexora
 
 **Ask a document a question. Get the exact clause — or an honest "not in here."**
@@ -282,12 +271,15 @@ lexora/
     app/rag/           parse · chunk · index · retrieve · rerank · generate · verify
     app/guard/         query rewrite + prompt-injection screening
     app/core/          settings · models · claude · embedding · vectorstore · observability
+    app/workspace/     extract · chunk · store · retrieve, for uploaded documents
     tests/             227 tests, run against the real corpus and index
   apps/web/            Next.js 15 · Tailwind 4 · Framer Motion
   corpus/              download.py + provenance manifest (PDFs gitignored)
-  eval/                questions.jsonl · ragas_run.py · chunking_experiment.py
-  Dockerfile           API image (Cloud Run + HF Spaces)
-  infra/               terraform/ · deploy guides
+  eval/                questions.jsonl · ragas_run.py · workspace_run.py · chunking
+  scripts/             deploy · bake · hosted verification · demo pre-flight
+  docs/screens/        README screenshots (excluded from the image)
+  Dockerfile           API image — HF Spaces today, Cloud Run unchanged
+  infra/               terraform/ (Cloud Run) · DEPLOY-SPACES.md
   AUDIT.md             every check, every measurement, every accepted residual
 ```
 

@@ -18,3 +18,5 @@ docs
 **/.mypy_cache
 **/.ruff_cache
 .env
+# Read by scripts/deploy_space.py at push time; the running container never sees it.
+.hf-space.yml

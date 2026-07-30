@@ -36,11 +36,15 @@ deploy_space = _load_deploy_space()
 
 
 class TestShortDescription:
-    def test_committed_readme_is_deployable(self):
-        """The regression guard. This is the file that actually gets pushed."""
+    def test_committed_space_config_is_deployable(self):
+        """The regression guard. This is what gets prepended to the pushed README."""
+        config = (REPO_ROOT / ".hf-space.yml").read_text(encoding="utf-8")
+        assert deploy_space.frontmatter_problems(config) == []
+
+    def test_the_readme_carries_no_front_matter(self):
+        """It lives in .hf-space.yml so GitHub does not render it as a table."""
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-        assert readme.startswith("---"), "README lost its Spaces frontmatter"
-        assert deploy_space.frontmatter_problems(readme.split("---")[1]) == []
+        assert not readme.startswith("---")
 
     def test_over_long_description_is_rejected(self):
         too_long = "x" * (deploy_space.SHORT_DESCRIPTION_MAX + 1)

@@ -1,0 +1,8 @@
+title: Lexora
+emoji: 📜
+colorFrom: indigo
+colorTo: gray
+sdk: docker
+app_port: 7860
+pinned: false
+short_description: "UAE labour & Dubai tenancy law: cited answers, or refusal"
