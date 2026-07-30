@@ -374,6 +374,67 @@ deploying, rather than by a failed deploy with an opaque log.
 
 ---
 
+### 6.5 Build memory is a different ceiling, and §6.4 does not cover it
+
+§6.4 measured the *running* service. Deploying to Hugging Face Spaces established that
+this is not the only limit: the Space gets 16 GB at runtime and still could not build the
+image. Two deploys died at the same step with `exit code: 137 — OOMKilled`, and an OOM
+kill is SIGKILL, so there was no traceback and no error line. The build log simply
+stopped mid-step. **Fitting in 1 GB at runtime does not imply the image can be built.**
+
+The bake step held three things in one process: the embedding session, the cross-encoder
+session, and the materialisation of all 181 vectors.
+
+**First attempt — split the process.** Three `RUN` layers instead of one, so the kernel
+reclaims each stage before the next begins and peak RSS is the largest stage rather than
+the sum. `scripts/bake.py` prints each stage's peak, because a build one OOM away from
+failing should say so while it still succeeds.
+
+| Stage | Peak RSS in the build container | Result |
+|---|---|---|
+| `embedding` | 290 MB | passes |
+| `reranker` | 254 MB | passes |
+| `vectorstore` | — | **OOM-killed** |
+
+That located the real cost rather than fixing it. `ensure_vector_store` loaded the ONNX
+session *and* called `embed_documents` on all 181 chunks at once — FastEmbed's default
+batch is 256, so every sequence padded to the longest of the 181 went through the graph
+in a single batch.
+
+**Second attempt — stop re-embedding at build time.** The vectors are now a committed
+artefact (`var/index/vectors.json`), so the stage loads them and never constructs a model.
+Verified against a cold var directory containing only the copied index files: **157 MB,
+and no model cache directory was created** — proof the session is genuinely absent rather
+than merely smaller.
+
+This also closed a correctness gap that was not the reason for the change. Embedding is
+not batch-invariant — padding length varies with batch composition, so the reduction
+order does too. Measured against the real corpus, versus the default batch:
+
+| Batch size | Max abs delta per component |
+|---|---|
+| 8 | 4.271e-04 |
+| 16 | 2.126e-04 |
+| 32 | 1.063e-04 |
+
+Small, and not nothing: §5 calibrates a cosine refusal floor, so a borderline passage can
+cross it. Any host that rebuilt the collection was serving a near-copy of the evaluated
+index. The committed vectors match every point `make index` built at **delta 0.0**, so
+the deployed collection is now the evaluated collection rather than a reconstruction of it.
+
+JSON rather than `.npy`: the Hub refuses binary files outside Xet/LFS. Routing this
+through LFS would require `lfs: true` on every checkout — including the CI job that builds
+the image, where a pointer file would produce a container that silently re-embedded
+instead of failing. 1.46 MB of text removes that failure mode entirely.
+
+**Why CI did not catch any of this.** The `container` job builds the image on a runner
+with gigabytes free, so `docker build` succeeding proved nothing about a constrained
+builder. `scripts/check_bake_budget.py` now parses the peak RSS each stage reports and
+fails the build over a 600 MB budget — and fails when a stage reports *nothing*, since a
+budget check over a missing measurement passes vacuously.
+
+---
+
 ## 7. Performance
 
 Retrieval + rerank budget: **≤1.5 s on CPU**. 30 queries, warm process, all stages from

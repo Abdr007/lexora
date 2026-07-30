@@ -112,7 +112,10 @@ jobs:
           uv pip install --python apps/api/.venv/bin/python -e "apps/api"
           apps/api/.venv/bin/python corpus/download.py
           PYTHONPATH=apps/api apps/api/.venv/bin/python -m app.rag.index
+      # `shell: bash` is load-bearing: the default is `bash -e` without pipefail, so a
+      # failing `docker build` piped into `tee` would exit 0 and pass this step.
       - name: Build the image
+        shell: bash
         run: docker build --progress=plain -t lexora-api:ci . 2>&1 | tee build.log
 
       # A runner has gigabytes to spare, so a successful `docker build` says nothing
