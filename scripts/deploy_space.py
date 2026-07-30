@@ -31,6 +31,11 @@ REQUIRED: Final = (
     Path("corpus/manifest.json"),
 )
 
+# The Hub enforces this in a pre-receive hook, so an over-long description rejects the
+# push only after the entire repository has been uploaded, and the message names the
+# field without naming the file it lives in. Checking it here costs nothing.
+SHORT_DESCRIPTION_MAX: Final = 60
+
 
 def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
     return subprocess.run(  # noqa: S603 - fixed argv, no shell
@@ -47,8 +52,22 @@ def preflight() -> list[str]:
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     if not readme.startswith("---"):
         problems.append("README.md has no Spaces YAML frontmatter (sdk: docker)")
-    elif "sdk: docker" not in readme.split("---")[1]:
+        return problems
+
+    frontmatter = readme.split("---")[1]
+    if "sdk: docker" not in frontmatter:
         problems.append("README.md frontmatter does not declare `sdk: docker`")
+
+    for line in frontmatter.splitlines():
+        if not line.startswith("short_description:"):
+            continue
+        # Quoting is optional in YAML, and a description containing a colon needs it.
+        described = line.split(":", 1)[1].strip().strip("\"'")
+        if len(described) > SHORT_DESCRIPTION_MAX:
+            problems.append(
+                f"short_description is {len(described)} characters; the Hub rejects "
+                f"anything over {SHORT_DESCRIPTION_MAX}. Shorten it in README.md."
+            )
     return problems
 
 
@@ -114,11 +133,25 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  pushing {branch} -> space/main …")
     pushed = run("git", "push", "--force", "space", f"{branch}:main", check=False)
     if pushed.returncode != 0:
-        print(pushed.stderr.strip()[-1500:])
-        print(
-            "\npush failed. The usual cause is a read-only token — create a WRITE token "
-            "at https://huggingface.co/settings/tokens and log in again."
-        )
+        stderr = pushed.stderr.strip()
+        print(stderr[-1500:])
+        # This used to blame a read-only token whatever the remote actually said. The
+        # Hub rejects a push for several unrelated reasons and it always names the one
+        # that applies; guessing sends you to the tokens page while the real fault sits
+        # in README.md.
+        if "YAML metadata" in stderr or "pre-receive hook declined" in stderr:
+            print(
+                "\npush failed: the Hub rejected the repository metadata. Correct the "
+                "field named above in README.md's frontmatter and re-run."
+            )
+        elif any(marker in stderr for marker in ("Authentication", "401", "403")):
+            print(
+                "\npush failed: authentication. Create a WRITE token at "
+                "https://huggingface.co/settings/tokens and log in again with "
+                "`hf auth login --token hf_... --add-to-git-credential`."
+            )
+        else:
+            print("\npush failed. The remote's reason is above.")
         return 1
 
     print(f"\n  deployed  {remote_url}")

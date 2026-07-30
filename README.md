@@ -6,7 +6,7 @@ colorTo: gray
 sdk: docker
 app_port: 7860
 pinned: false
-short_description: Grounded RAG over UAE labour and Dubai tenancy law, with verified citations and an explicit refusal path.
+short_description: "UAE labour & Dubai tenancy law: cited answers, or refusal"
 ---
 
 # Lexora
