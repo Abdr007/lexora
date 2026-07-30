@@ -163,11 +163,18 @@ export const getLaws = (signal?: AbortSignal) => getJson<LawView[]>("/api/laws",
 export const getMetrics = (signal?: AbortSignal) =>
   getJson<Record<string, unknown>>("/api/metrics", signal);
 
+export type AskScope = "law" | "workspace";
+
 interface AskOptions {
   question: string;
   history: Turn[];
   lawId: string | null;
   rerank: boolean;
+  /** "law" searches the pinned corpus; "workspace" searches this session's uploads. */
+  scope?: AskScope;
+  /** Workspace session id. Passed in rather than read here, so this module does not
+   *  import lib/workspace.ts, which already imports API_URL from this one. */
+  sessionId?: string | null;
   signal: AbortSignal;
   onEvent: (event: StreamEvent) => void;
 }
@@ -183,6 +190,8 @@ export async function askStream({
   history,
   lawId,
   rerank,
+  scope = "law",
+  sessionId,
   signal,
   onEvent,
 }: AskOptions): Promise<void> {
@@ -190,8 +199,13 @@ export async function askStream({
   try {
     response = await fetch(`${API_URL}/api/ask/stream`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, history, law_id: lawId, rerank }),
+      headers: {
+        "Content-Type": "application/json",
+        // Only sent for a workspace question: it identifies which session's documents
+        // to search, and the law corpus has no session at all.
+        ...(scope === "workspace" && sessionId ? { "X-Lexora-Session": sessionId } : {}),
+      },
+      body: JSON.stringify({ question, history, law_id: lawId, rerank, scope }),
       signal,
     });
   } catch {

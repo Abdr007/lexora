@@ -42,12 +42,17 @@ export const emptyRail = (): RailState => ({
   blocked: false,
 });
 
+/*
+ * Named for what each step does for the reader, not for the technique that does it.
+ * "Fuse · dense + BM25 · RRF" told a visitor nothing and cost the ones who did understand
+ * it nothing to lose; the technique is on the metrics page, where someone has asked.
+ */
 const STAGES: { key: StageKey; label: string; note: string }[] = [
-  { key: "gate", label: "Gate", note: "rewrite · screen" },
-  { key: "fuse", label: "Fuse", note: "dense + BM25 · RRF" },
-  { key: "rerank", label: "Rerank", note: "cross-encoder" },
-  { key: "ground", label: "Ground", note: "context-only" },
-  { key: "verify", label: "Verify", note: "citations resolve" },
+  { key: "gate", label: "Read the question", note: "and check it is a real one" },
+  { key: "fuse", label: "Search", note: "by meaning and by exact words" },
+  { key: "rerank", label: "Rank", note: "closest passages first" },
+  { key: "ground", label: "Answer", note: "only from what was found" },
+  { key: "verify", label: "Check", note: "every quote traces back" },
 ];
 
 function readout(stage: StageKey, state: RailState): string | null {
@@ -89,9 +94,9 @@ function stageMs(stage: StageKey, timings: TimingView | null): number | null {
 export function ProvenanceRail({ state, className }: { state: RailState; className?: string }) {
   return (
     <aside className={cn("sheet", className)} aria-label="Retrieval pipeline trace">
-      <div className="flex items-baseline justify-between border-b border-rule px-3 py-2">
-        <span className="marginal">Provenance</span>
-        <span className="instrument text-ink-faint">
+      <div className="flex items-baseline justify-between border-b border-rule px-3 py-2.5">
+        <span className="text-[0.82rem] font-medium text-ink">How the answer was found</span>
+        <span className="instrument">
           {state.timings ? `${Math.round(state.timings.total_ms)} ms` : state.active ? "···" : "—"}
         </span>
       </div>
@@ -108,37 +113,44 @@ export function ProvenanceRail({ state, className }: { state: RailState; classNa
             (stage.key === "verify" && (state.unsupported ?? 0) > 0);
 
           return (
+            /* Stacked, not columnar. The old three-column row was sized for one-word
+               technical labels; plain English needs the full width, and truncating the
+               explanation defeats the reason for writing one. */
             <li
               key={stage.key}
-              className="flex items-baseline gap-2.5 border-b border-rule px-3 py-1.5 last:border-b-0"
+              className="flex items-start gap-2.5 border-b border-rule px-3 py-2 last:border-b-0"
             >
               <span
                 aria-hidden
                 className={cn(
-                  "mt-[0.3em] size-[7px] shrink-0",
+                  "mt-[0.42em] size-[7px] shrink-0 rounded-full transition-colors duration-300",
                   flagged
                     ? "bg-ochre"
                     : isDone
                       ? "bg-indigo"
                       : isActive
-                        ? "stamp bg-ink"
-                        : "border border-rule bg-transparent",
+                        ? "bg-violet pulse"
+                        : "border border-rule-strong bg-transparent",
                 )}
               />
-              <span
-                className={cn(
-                  "instrument w-[3.9rem] shrink-0",
-                  isDone || isActive ? "text-ink" : "text-ink-faint",
-                )}
-              >
-                {stage.label}
-              </span>
-              <span className="instrument min-w-0 flex-1 truncate text-ink-soft">
-                {value ?? stage.note}
-              </span>
-              <span className="instrument shrink-0 text-ink-faint">
-                {ms !== null && ms > 0 ? `${Math.round(ms)}ms` : ""}
-              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span
+                    className={cn(
+                      "text-[0.8rem] font-medium",
+                      isDone || isActive ? "text-ink" : "text-ink-faint",
+                    )}
+                  >
+                    {stage.label}
+                  </span>
+                  <span className="instrument shrink-0">
+                    {ms !== null && ms > 0 ? `${Math.round(ms)}ms` : ""}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[0.74rem] leading-snug text-ink-faint">
+                  {value ?? stage.note}
+                </p>
+              </div>
             </li>
           );
         })}

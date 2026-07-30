@@ -5,12 +5,16 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnswerText } from "@/components/AnswerText";
 import { Composer } from "@/components/Composer";
+import { Dropzone } from "@/components/Dropzone";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { EvidencePanel } from "@/components/EvidencePanel";
 import { ProvenanceRail, type RailState, emptyRail } from "@/components/ProvenanceRail";
+import { describeKind, getWorkspace, readSession, type Workspace } from "@/lib/workspace";
 import { RefusalCard } from "@/components/RefusalCard";
 import { ScoreLadder } from "@/components/ScoreLadder";
 import {
   askStream,
+  type AskScope,
   getHealth,
   getLaws,
   type AnswerView,
@@ -31,10 +35,10 @@ interface Exchange {
 }
 
 const SUGGESTIONS = [
-  { kind: "Paraphrase", text: "How much end-of-service money do I get after 6 years?" },
-  { kind: "Exact term", text: "What does Article 30 of the labour law say?" },
-  { kind: "Tenancy", text: "Can my landlord increase the rent when I renew?" },
-  { kind: "Refusal", text: "What is the capital gains tax rate in Singapore?" },
+  { kind: "In your words", text: "How much end-of-service money do I get after 6 years?" },
+  { kind: "By article", text: "What does Article 30 of the labour law say?" },
+  { kind: "Renting", text: "Can my landlord increase the rent when I renew?" },
+  { kind: "Not covered", text: "What is the capital gains tax rate in Singapore?" },
 ];
 
 export default function Page() {
@@ -45,6 +49,8 @@ export default function Page() {
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [busy, setBusy] = useState(false);
   const [openChunk, setOpenChunk] = useState<ChunkView | null>(null);
+  const [mode, setMode] = useState<AskScope>("law");
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +65,15 @@ export default function Page() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [exchanges]);
+
+  // Fetched when the mode is first opened rather than on page load: it creates a session
+  // server-side, and a visitor who only ever reads the law should not get one.
+  useEffect(() => {
+    if (mode !== "workspace" || workspace) return;
+    const controller = new AbortController();
+    getWorkspace(controller.signal).then(setWorkspace).catch(() => setWorkspace(null));
+    return () => controller.abort();
+  }, [mode, workspace]);
 
   const chunkIndex = useMemo(() => {
     const map = new Map<string, ChunkView>();
@@ -112,8 +127,10 @@ export default function Page() {
       await askStream({
         question,
         history,
-        lawId,
+        lawId: mode === "workspace" ? null : lawId,
         rerank: true,
+        scope: mode,
+        sessionId: readSession(),
         signal: controller.signal,
         onEvent: (event) => {
           patch(id, (exchange) => {
@@ -179,7 +196,7 @@ export default function Page() {
       abortRef.current = null;
       setBusy(false);
     },
-    [busy, exchanges, lawId, patch],
+    [busy, exchanges, lawId, mode, patch],
   );
 
   const sendRef = useRef<((text: string) => Promise<void>) | null>(null);
@@ -203,6 +220,13 @@ export default function Page() {
     void sendRef.current(preset);
   }, [send]);
 
+  // /?mode=workspace opens straight into the upload view, so a demo link lands on the
+  // thing being demonstrated rather than on the law library.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("mode");
+    if (requested === "workspace" || requested === "law") setMode(requested);
+  }, []);
+
   const stop = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
@@ -221,7 +245,12 @@ export default function Page() {
 
   return (
     <div className="mx-auto max-w-[78rem] px-5 sm:px-8">
-      <Masthead health={health} laws={laws} />
+      <Masthead
+        health={health}
+        mode={mode}
+        onModeChange={setMode}
+        documentCount={workspace?.documents.length ?? 0}
+      />
 
       <main className="flex gap-8 pt-8 pb-10">
         {/* The statutory margin: the article numbers currently in evidence, set outside
@@ -245,7 +274,12 @@ export default function Page() {
         </nav>
 
         <div className="min-w-0 flex-1">
-          {exchanges.length === 0 ? (
+          {mode === "workspace" ? (
+            <div className="cut-in space-y-5 pb-8">
+              {exchanges.length === 0 && <WorkspaceOpening />}
+              <Dropzone workspace={workspace} onChange={setWorkspace} />
+            </div>
+          ) : exchanges.length === 0 ? (
             <Opening laws={laws} onPick={(text) => void send(text)} />
           ) : null}
 
@@ -270,6 +304,7 @@ export default function Page() {
               laws={laws}
               lawId={lawId}
               onLawChange={setLawId}
+              showLawFilter={mode === "law"}
               disabled={health?.status === "degraded"}
             />
           </div>
@@ -278,7 +313,11 @@ export default function Page() {
         <div className="hidden w-[19rem] shrink-0 lg:block">
           <div className="sticky top-6 space-y-5">
             <ProvenanceRail state={latest?.rail ?? emptyRail()} />
-            <CorpusIndex laws={laws} health={health} />
+            {mode === "workspace" ? (
+              <WorkspaceSummary workspace={workspace} />
+            ) : (
+              <CorpusIndex laws={laws} health={health} />
+            )}
           </div>
         </div>
       </main>
@@ -292,55 +331,104 @@ export default function Page() {
   );
 }
 
-function Masthead({ health, laws }: { health: HealthView | null; laws: LawView[] }) {
-  const articles = laws.reduce((total, law) => total + law.article_count, 0);
+function Masthead({
+  health,
+  mode,
+  onModeChange,
+  documentCount,
+}: {
+  health: HealthView | null;
+  mode: AskScope;
+  onModeChange: (mode: AskScope) => void;
+  documentCount: number;
+}) {
   const offline = health?.engine === "offline-extractive";
   return (
-    <header className="masthead-rule pt-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-rule pb-2.5">
-        <div className="flex items-baseline gap-4">
-          <span className="display text-[1.6rem] tracking-[0.02em] text-ink">LEXORA</span>
-          <span className="marginal hidden sm:inline">
-            Statute Instrument{articles > 0 ? ` · ${articles} articles indexed` : ""}
-          </span>
+    <header className="masthead-rule sticky top-0 z-30 -mx-5 px-5 py-3 sm:-mx-8 sm:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <div className="flex items-center gap-4">
+          <span className="display text-[1.45rem] tracking-[-0.01em] text-ink">LEXORA</span>
+          {/* The two things you can search. Named for what they hold, not for how they
+              are stored. */}
+          <div className="segment" role="group" aria-label="What to search">
+            <button
+              type="button"
+              aria-pressed={mode === "law"}
+              onClick={() => onModeChange("law")}
+            >
+              UAE law
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === "workspace"}
+              onClick={() => onModeChange("workspace")}
+            >
+              My documents{documentCount > 0 ? ` · ${documentCount}` : ""}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* One word about where answers come from. The model names belong on the
+              metrics page, not on the first screen someone sees. */}
           {offline ? (
             <span
-              className="marginal border border-ochre px-2 py-0.5 text-ochre"
-              title="No Claude API key configured. Retrieval, reranking, the refusal gate and citation verification all run; answers are quoted from the corpus rather than written."
+              className="stamp text-ochre"
+              title="No Claude key is configured yet. Everything else runs — the answer quotes the source instead of rewriting it."
             >
-              Offline · extractive
+              Quoting sources
             </span>
           ) : health ? (
-            <span className="marginal border border-indigo px-2 py-0.5 text-indigo">
-              Claude · grounded
-            </span>
+            <span className="stamp text-indigo">Writing answers</span>
           ) : null}
-          <Link href="/metrics" className="marginal underline-offset-4 hover:underline">
-            Metrics
+          <Link href="/metrics" className="btn btn-quiet">
+            How well it works
           </Link>
+          <ThemeToggle />
         </div>
       </div>
     </header>
   );
 }
 
+/**
+ * The workspace empty state. It says what to do and what happens to the file, because
+ * those are the two questions anyone has before dropping a contract into a website.
+ */
+function WorkspaceOpening() {
+  return (
+    <section className="cut-in-slow">
+      <h1 className="display max-w-[15ch] text-[clamp(2.2rem,6vw,4rem)] text-ink">
+        Ask your own documents.
+      </h1>
+      <div className="threshold draw-rule my-5 w-full" />
+      <p className="statute max-w-[56ch] text-ink-soft">
+        A contract, a policy, a lease, a photo of a page. Ask in plain English and get the
+        answer with the exact wording attached — or a straight “that is not in this
+        document”.
+      </p>
+      <p className="marginal mt-4 max-w-[56ch]">
+        Your file is held in memory for this visit only, never written to disk, and dropped
+        when you close the tab.
+      </p>
+    </section>
+  );
+}
+
 function Opening({ laws, onPick }: { laws: LawView[]; onPick: (text: string) => void }) {
   return (
     <section className="cut-in-slow pb-10">
-      <h1 className="display max-w-[16ch] text-[clamp(2.6rem,7.5vw,5.2rem)] text-ink">
+      <h1 className="display max-w-[16ch] text-[clamp(2.4rem,7vw,4.8rem)] text-ink">
         Answers with the clause attached.
       </h1>
-      <div className="draw-rule my-5 h-px w-full bg-ink" />
-      <p className="display max-w-[18ch] text-[clamp(1.5rem,4vw,2.6rem)] italic text-ink-soft">
+      <div className="threshold draw-rule my-6 w-full" />
+      <p className="display max-w-[18ch] text-[clamp(1.4rem,3.6vw,2.3rem)] text-ink-soft">
         Or no answer at all.
       </p>
 
       <p className="statute mt-7 max-w-[58ch] text-ink-soft">
-        Every claim carries the article it came from, and every citation opens the exact
-        text. Where the indexed law does not cover a question, Lexora says so — and shows
-        the passages it rejected, with the scores that rejected them.
+        Ask about working in the UAE or renting in Dubai. Every answer quotes the article it
+        came from, and every quote opens the real text. When the law does not cover your
+        question, Lexora says so instead of guessing — and shows you what it considered.
       </p>
 
       <ul className="mt-8 divide-y divide-rule border-y border-rule">
@@ -499,11 +587,51 @@ function Footprint({
   );
 }
 
+/**
+ * The workspace's own summary panel, in place of the law library.
+ *
+ * It states the one thing the law corpus can claim and this cannot: these answers have
+ * not been measured. The corpus refusal threshold was fitted against 61 labelled
+ * questions about the corpus; on a document uploaded a minute ago there is no labelled
+ * set, so saying nothing here would let the interface borrow credibility it has not
+ * earned. The API sends `calibrated: false` precisely so this cannot be forgotten.
+ */
+function WorkspaceSummary({ workspace }: { workspace: Workspace | null }) {
+  const documents = workspace?.documents ?? [];
+  return (
+    <section className="sheet overflow-hidden">
+      <div className="border-b border-rule px-3 py-2.5">
+        <span className="text-[0.82rem] font-medium text-ink">Your documents</span>
+      </div>
+      {documents.length === 0 ? (
+        <p className="px-3 py-3 text-[0.78rem] leading-snug text-ink-faint">
+          Nothing added yet. Drop a file or paste a link to start asking.
+        </p>
+      ) : (
+        <ul>
+          {documents.map((document) => (
+            <li key={document.doc_id} className="border-b border-rule px-3 py-2 last:border-b-0">
+              <p className="truncate text-[0.82rem] text-ink">{document.title}</p>
+              <p className="marginal mt-0.5">{describeKind(document)}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+      {workspace && !workspace.calibrated && (
+        <p className="border-t border-rule px-3 py-2.5 text-[0.74rem] leading-snug text-ochre">
+          Answers here are not measured. The accuracy figures on the metrics page were
+          measured against the UAE law library, not against your file.
+        </p>
+      )}
+    </section>
+  );
+}
+
 function CorpusIndex({ laws, health }: { laws: LawView[]; health: HealthView | null }) {
   if (laws.length === 0) return null;
   return (
     <section className="sheet">
-      <p className="marginal border-b border-rule px-3 py-2">Corpus</p>
+      <p className="marginal border-b border-rule px-3 py-2">The law library</p>
       <ul className="divide-y divide-rule">
         {laws.map((law) => (
           <li key={law.law_id}>
@@ -528,12 +656,10 @@ function CorpusIndex({ laws, health }: { laws: LawView[]; health: HealthView | n
         ))}
       </ul>
       {health ? (
-        <p className="instrument border-t border-rule px-3 py-2 leading-relaxed text-ink-faint">
-          {health.chunks_indexed} chunks
-          <br />
-          {health.embedding_model.split("/").pop()}
-          <br />
-          {health.reranker.split("/").pop()}
+        // Model names moved to the metrics page. On the first screen they read as noise
+        // to a visitor and told an engineer nothing they could not find in one click.
+        <p className="marginal border-t border-rule px-3 py-2 leading-relaxed">
+          {health.chunks_indexed} passages, searchable
         </p>
       ) : null}
     </section>

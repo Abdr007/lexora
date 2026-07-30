@@ -81,9 +81,15 @@ def split_sections(document: ExtractedDocument) -> list[Section]:
     def flush() -> None:
         nonlocal title, buffer
         body = "\n".join(buffer).strip()
-        if body and len(body) >= MIN_SECTION_CHARS:
+        if not body:
+            title, buffer = None, []
+            return
+        if len(body) >= MIN_SECTION_CHARS or not sections:
+            # Short, but there is nothing to merge into. Keeping it as its own section is
+            # the only way it survives: an earlier version dropped it here, which silently
+            # lost the opening lines of any document that began with a short paragraph.
             sections.append(Section(title or "", body, start_page, end_page))
-        elif body and sections:
+        else:
             # Too short to stand alone — a stray heading or a page footer. Append it to
             # the previous section rather than emitting a chunk that carries no meaning.
             previous = sections[-1]
@@ -103,6 +109,12 @@ def split_sections(document: ExtractedDocument) -> list[Section]:
                 flush()
                 start_page = page.page_no
                 title = heading
+                # The raw line goes into the body as well. `_match_heading` returns a
+                # cleaned label — markers stripped, numbering reordered — so using it
+                # alone would drop the original wording from the searchable text. That is
+                # a heading per document lost, and headings carry the terms people search
+                # for. Keeping both costs one repeated line and makes coverage exact.
+                buffer.append(line.strip())
             else:
                 buffer.append(line)
     flush()
@@ -152,6 +164,29 @@ def _pack(paragraphs: list[str], budget: int, tokenizer: Tokenizer) -> list[str]
     if current:
         packed.append("\n\n".join(current))
     return packed
+
+
+def coverage(document: ExtractedDocument, chunks: list[Chunk]) -> float:
+    """Fraction of the document's words that survive into the chunks.
+
+    Chunking is the one stage that can lose text silently: a paragraph dropped here does
+    not raise, it simply never becomes searchable, and the only symptom is a question that
+    should have been answerable coming back refused. Nothing downstream can detect that,
+    because nothing downstream ever saw the missing words.
+
+    Compared as a word multiset, not as a string. Chunk text carries an added heading line
+    and overlapping pieces repeat words, so an equality check would fail on a correct
+    result; what matters is that every word of the source appears at least as often in the
+    chunks as it did in the document.
+    """
+    from collections import Counter
+
+    source = Counter(document.text.split())
+    if not source:
+        return 1.0
+    produced = Counter(word for chunk in chunks for word in chunk.text.split())
+    kept = sum(min(count, produced.get(word, 0)) for word, count in source.items())
+    return kept / sum(source.values())
 
 
 def chunk_document(

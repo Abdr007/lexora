@@ -44,6 +44,13 @@ class WorkspaceDocument:
     chunks: list[Chunk]
     ocr_engine: str | None
     added_at: float
+    #: True when the document was longer than `workspace_max_pages` and was cut. Surfaced
+    #: rather than logged: an answer drawn from a silently truncated document is
+    #: indistinguishable from one drawn from a complete one.
+    truncated: bool = False
+    #: Fraction of the document's words that reached the index. Anything below 1.0 means
+    #: a question about the missing part would be refused for the wrong reason.
+    coverage: float = 1.0
 
     @property
     def chunk_count(self) -> int:
@@ -122,7 +129,12 @@ class SessionStore:
     # ── documents ────────────────────────────────────────────────────────────
 
     def add(
-        self, session_id: str | None, document: ExtractedDocument, chunks: list[Chunk], doc_id: str
+        self,
+        session_id: str | None,
+        document: ExtractedDocument,
+        chunks: list[Chunk],
+        doc_id: str,
+        coverage: float = 1.0,
     ) -> tuple[WorkspaceSession, WorkspaceDocument]:
         if not chunks:
             raise WorkspaceFullError(f"nothing indexable was found in {document.title}")
@@ -142,6 +154,8 @@ class SessionStore:
                 chunks=chunks,
                 ocr_engine=document.ocr_engine,
                 added_at=time.time(),
+                truncated=bool(document.diagnostics.get("truncated")),
+                coverage=coverage,
             )
             session.documents[doc_id] = entry
             return session, entry

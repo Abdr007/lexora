@@ -16,6 +16,7 @@ export function Composer({
   lawId,
   onLawChange,
   disabled,
+  showLawFilter = true,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -26,6 +27,9 @@ export function Composer({
   lawId: string | null;
   onLawChange: (lawId: string | null) => void;
   disabled: boolean;
+  /** Hidden in workspace mode: the filter names laws, and there are none to filter. A
+   *  control that cannot affect the result should not be on screen. */
+  showLawFilter?: boolean;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -39,9 +43,10 @@ export function Composer({
   const over = value.length > MAX_CHARS;
 
   return (
-    <div className="sheet border-t-2 border-t-ink">
+    <div className="sheet border-t-2 border-t-indigo">
+      {showLawFilter !== false && (
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 border-b border-rule px-4 py-2">
-        <span className="marginal mr-1">Scope</span>
+        <span className="marginal mr-1">Search in</span>
         <ScopeButton active={lawId === null} onClick={() => onLawChange(null)}>
           All
         </ScopeButton>
@@ -56,6 +61,7 @@ export function Composer({
           </ScopeButton>
         ))}
       </div>
+      )}
 
       <textarea
         ref={textareaRef}
@@ -69,7 +75,7 @@ export function Composer({
         }}
         rows={1}
         disabled={disabled}
-        placeholder="Put a question to the corpus…"
+        placeholder="Ask a question in plain English…"
         aria-label="Your question"
         className="statute w-full resize-none bg-transparent px-4 py-3 text-[1.02rem] text-ink placeholder:text-ink-faint focus:outline-none disabled:opacity-50"
       />

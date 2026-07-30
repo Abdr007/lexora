@@ -29,7 +29,7 @@ from fastapi import APIRouter, Depends, File, Header, HTTPException, Response, U
 from pydantic import BaseModel, Field
 
 from app.core.settings import Settings, get_settings
-from app.workspace.chunker import chunk_document
+from app.workspace.chunker import chunk_document, coverage
 from app.workspace.extract import ExtractedDocument, ExtractionError, extract_bytes, fetch_url
 from app.workspace.store import SessionStore, WorkspaceFullError, get_store
 
@@ -52,6 +52,8 @@ class DocumentView(BaseModel):
     pages: int
     chunks: int
     ocr_engine: str | None = None
+    truncated: bool = False
+    coverage: float = 1.0
 
 
 class WorkspaceView(BaseModel):
@@ -73,6 +75,8 @@ def _view(session: Any, settings: Settings) -> WorkspaceView:
             pages=doc.pages,
             chunks=doc.chunk_count,
             ocr_engine=doc.ocr_engine,
+            truncated=doc.truncated,
+            coverage=doc.coverage,
         )
         for doc in session.documents.values()
     ]
@@ -103,8 +107,9 @@ def _ingest(
     if not chunks:
         raise WorkspaceFullError(f"no indexable text was found in {document.title}")
 
+    kept = coverage(document, chunks)
     vectors = embed_documents([chunk.text for chunk in chunks], settings)
-    session, entry = store.add(session_id, document, chunks, doc_id)
+    session, entry = store.add(session_id, document, chunks, doc_id, kept)
     # The vectors live beside the chunks on the document entry so a query never re-embeds.
     entry_vectors = np.asarray(vectors, dtype=np.float32)
     _VECTORS[doc_id] = entry_vectors

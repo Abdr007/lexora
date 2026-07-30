@@ -1,45 +1,84 @@
 @import "tailwindcss";
 
 /* ───────────────────────────────────────────────────────────────────────────
-   LEXORA — "The Gazette"
+   LEXORA — "Spectrum"
 
-   A statutory instrument, not a dashboard. The subject's own artefacts are
-   printed law: paper, ink, hairline rules, article numbers set in the margin.
-   So the interface is paper. The machine layer — ranks, scores, timings — is the
-   only thing allowed to look like a machine, set in monospace and kept to the
-   instrument panels.
+   An instrument that shows its own confidence. The subject is retrieval under
+   doubt: the system finds passages, scores them, and either answers with the
+   clause attached or says the document does not cover it.
 
-   Deliberately absent: glassmorphism, glows, blurs, gradients, rounded cards,
-   neon accents. There is exactly one accent colour and it means one thing —
-   "this citation resolved".
+   So colour is not decoration here — colour IS the score. One spectrum runs
+   through the whole interface and means the same thing everywhere it appears:
+
+       cyan    strong match, cited and verified
+       violet  good match, used as evidence
+       amber   weak — near the floor, shown as a near miss
+       rose    below the floor, or a citation that did not resolve
+
+   The refusal threshold is drawn as a luminous line. That line is the signature:
+   it is the only element allowed to glow, and it is the thing most retrieval
+   demos do not have at all.
+
+   Light and dark are both first-class. The spectrum keeps its meaning in each;
+   only its luminance changes so it still passes contrast on a lit background.
    ─────────────────────────────────────────────────────────────────────────── */
 
 @theme {
-  --color-paper: #faf9f5;
-  --color-sheet: #ffffff;
-  --color-ink: #0e0e10;
-  --color-ink-soft: #3d3d45;
-  --color-ink-faint: #8a8a93;
-  --color-rule: #d9d7cf;
-  --color-rule-strong: #0e0e10;
+  /* Surfaces. Dark is the default: an instrument reads better unlit. */
+  --color-paper: #08090f;
+  --color-sheet: #10131f;
+  --color-raised: #171b2e;
+  --color-ink: #edf0ff;
+  --color-ink-soft: #a3aacb;
+  --color-ink-faint: #6b7299;
+  --color-rule: #262b45;
+  --color-rule-strong: #3a4166;
 
-  /* One accent. Verified citation, and nothing else. */
-  --color-indigo: #4338ca;
-  --color-indigo-wash: #eeedfb;
-  /* A citation that does not resolve. */
-  --color-oxblood: #b3261e;
-  --color-oxblood-wash: #fbeceb;
-  /* The corpus does not cover this. */
-  --color-ochre: #a35b06;
-  --color-ochre-wash: #fdf3e3;
+  /* The spectrum. Named for what they mean, not for what they look like. */
+  --color-indigo: #2dd4e8; /* verified citation */
+  --color-indigo-wash: #08303a;
+  --color-violet: #8b7cf6; /* evidence */
+  --color-violet-wash: #1e1a3d;
+  --color-ochre: #fbbf24; /* near miss / not covered */
+  --color-ochre-wash: #33260a;
+  --color-oxblood: #fb7185; /* citation did not resolve */
+  --color-oxblood-wash: #3a1220;
 
-  --font-display: var(--font-bodoni), Didot, "Times New Roman", serif;
-  --font-body: var(--font-source-serif), Georgia, serif;
+  --font-display: var(--font-sora), "Segoe UI", system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
+  color-scheme: dark;
+  --glow: 0 0 0 1px rgb(45 212 232 / 0.25), 0 0 28px -6px rgb(45 212 232 / 0.45);
+}
+
+/* The light theme is a real design, not an inversion. Surfaces lift to near
+   white and the spectrum darkens so every hue still passes contrast on paper. */
+:root[data-theme="light"] {
   color-scheme: light;
+  --color-paper: #f6f7fc;
+  --color-sheet: #ffffff;
+  --color-raised: #ffffff;
+  --color-ink: #0b0d1a;
+  --color-ink-soft: #444c73;
+  --color-ink-faint: #6f77a0;
+  --color-rule: #dfe3f2;
+  --color-rule-strong: #b9c0dd;
+
+  --color-indigo: #0d7c8f;
+  --color-indigo-wash: #e2f6fa;
+  --color-violet: #5b46d6;
+  --color-violet-wash: #eeebfe;
+  --color-ochre: #9a6100;
+  --color-ochre-wash: #fdf3dd;
+  --color-oxblood: #c02248;
+  --color-oxblood-wash: #fdeaef;
+
+  --glow: 0 0 0 1px rgb(13 124 143 / 0.2), 0 0 22px -8px rgb(13 124 143 / 0.35);
 }
 
 html {
@@ -53,202 +92,429 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Switching theme should feel like a dimmer, not a cut. */
+  transition:
+    background-color 0.4s var(--ease-out-soft),
+    color 0.4s var(--ease-out-soft);
 }
 
-/* Laid-paper tooth. Two hairline gratings at right angles, at 3% opacity — felt
-   rather than seen, and the only texture in the design. */
+/* ── ambient field ────────────────────────────────────────────────────────
+   The spectrum, dissolved. Three very low-opacity pools that drift slowly; it
+   reads as depth rather than as a gradient. Same class name as the old paper
+   grain it replaces, so no markup had to change. */
 .paper-tooth {
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(14, 14, 16, 0.028) 0px,
-      rgba(14, 14, 16, 0.028) 1px,
-      transparent 1px,
-      transparent 4px
-    ),
-    repeating-linear-gradient(
-      to right,
-      rgba(14, 14, 16, 0.02) 0px,
-      rgba(14, 14, 16, 0.02) 1px,
-      transparent 1px,
-      transparent 7px
-    );
+  position: relative;
+  isolation: isolate;
 }
 
-/* ── rules ────────────────────────────────────────────────────────────────
-   Hairlines are structural here: they divide a document, they do not decorate
-   a card. Nothing has a border radius. */
+.paper-tooth::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38rem 30rem at 12% 8%, rgb(45 212 232 / 0.1), transparent 65%),
+    radial-gradient(34rem 28rem at 88% 22%, rgb(139 124 246 / 0.11), transparent 62%),
+    radial-gradient(30rem 26rem at 62% 96%, rgb(251 191 36 / 0.06), transparent 60%);
+  animation: drift 24s var(--ease-out-soft) infinite alternate;
+}
 
+:root[data-theme="light"] .paper-tooth::before {
+  background:
+    radial-gradient(38rem 30rem at 12% 8%, rgb(13 124 143 / 0.07), transparent 65%),
+    radial-gradient(34rem 28rem at 88% 22%, rgb(91 70 214 / 0.07), transparent 62%),
+    radial-gradient(30rem 26rem at 62% 96%, rgb(154 97 0 / 0.05), transparent 60%);
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(0, -2.5%, 0) scale(1.06);
+  }
+}
+
+/* ── structure ────────────────────────────────────────────────────────────
+   Rules divide; they do not decorate. Radius is small and consistent — an
+   instrument has machined edges, not pill shapes. */
 .rule {
   border-color: var(--color-rule);
 }
 
 .rule-ink {
-  border-color: var(--color-ink);
+  border-color: var(--color-rule-strong);
+}
+
+.masthead-rule {
+  border-bottom: 1px solid var(--color-rule);
+  backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--color-paper) 78%, transparent);
 }
 
 .sheet {
   background: var(--color-sheet);
   border: 1px solid var(--color-rule);
-}
-
-/* The heavy top rule that opens a section, as a gazette sets its headings. */
-.masthead-rule {
-  border-top: 3px solid var(--color-ink);
-}
-
-/* ── type ─────────────────────────────────────────────────────────────────
-   Bodoni is a didone: enormous thick/thin contrast that only reads at display
-   size. It is used large and sparingly, never below 20px. */
-
-.display {
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.022em;
-  line-height: 0.96;
-}
-
-.statute {
-  font-family: var(--font-body);
-  line-height: 1.66;
-  font-size: 1rem;
-  hanging-punctuation: first;
-}
-
-.statute mark {
-  background: var(--color-indigo-wash);
-  color: var(--color-ink);
-  box-shadow: inset 0 -1px 0 0 var(--color-indigo);
-  padding: 0.06em 0.1em;
-}
-
-/* Marginal note: the small mono label a printed statute sets in its margin. */
-.marginal {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
-  font-variant-numeric: tabular-nums;
+  border-radius: 14px;
 }
 
 .instrument {
   font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
 }
 
-/* ── the one accent ───────────────────────────────────────────────────────
-   A citation chip is set like a legal reference, not like a button: indigo ink,
-   a hairline box, no fill until hovered. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
 
-.chip {
+.statute {
+  font-family: var(--font-body);
+  line-height: 1.68;
+}
+
+.marginal {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.02em;
-  color: var(--color-indigo);
-  border: 1px solid color-mix(in oklab, var(--color-indigo) 34%, transparent);
-  background: transparent;
-  padding: 0.08em 0.34em;
-  transition: background-color 120ms linear, border-color 120ms linear;
-  white-space: nowrap;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--color-ink-faint);
 }
 
-.chip:hover,
-.chip:focus-visible {
-  background: var(--color-indigo-wash);
+/* ── the signature: the threshold line ───────────────────────────────────
+   The one element allowed to glow. It marks the score a passage must clear to
+   be answered from at all. Above it the interface cites; below it, it refuses. */
+.threshold {
+  position: relative;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-indigo),
+    var(--color-violet),
+    transparent
+  );
+  box-shadow: var(--glow);
+}
+
+.threshold[data-state="refused"] {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-ochre),
+    var(--color-oxblood),
+    transparent
+  );
+  box-shadow:
+    0 0 0 1px rgb(251 191 36 / 0.25),
+    0 0 28px -6px rgb(251 191 36 / 0.5);
+}
+
+/* Pulse is reserved for "the system is deciding". It never runs idle, because a
+   thing that always pulses stops meaning anything. */
+.pulse {
+  animation: pulse 1.7s var(--ease-out-soft) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scaleX(0.985);
+  }
+}
+
+/* ── buttons ──────────────────────────────────────────────────────────────
+   One system, used everywhere. Solid fill, a real pressed state, and a focus
+   ring visible on both themes. Transitions touch transform and colour only, so
+   nothing reflows on hover. */
+.btn {
+  --btn-bg: var(--color-raised);
+  --btn-fg: var(--color-ink);
+  --btn-edge: var(--color-rule-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.05rem;
+  border-radius: 10px;
+  border: 1px solid var(--btn-edge);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 550;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform 0.16s var(--ease-out-soft),
+    background-color 0.2s var(--ease-out-soft),
+    border-color 0.2s var(--ease-out-soft),
+    box-shadow 0.2s var(--ease-out-soft),
+    opacity 0.2s var(--ease-out-soft);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
   border-color: var(--color-indigo);
+  box-shadow: var(--glow);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+  transition-duration: 0.06s;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+/* The one primary action on any given screen. */
+.btn-primary {
+  --btn-bg: var(--color-indigo);
+  --btn-fg: var(--color-paper);
+  --btn-edge: var(--color-indigo);
+  font-weight: 650;
+}
+
+:root[data-theme="light"] .btn-primary {
+  --btn-fg: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.btn-quiet {
+  --btn-bg: transparent;
+  --btn-edge: var(--color-rule);
+  color: var(--color-ink-soft);
+}
+
+.btn-quiet:hover:not(:disabled) {
+  color: var(--color-ink);
+  background: var(--color-raised);
+}
+
+/* A segmented control: mode switch, scope filter. The selected segment is
+   filled rather than outlined, so its state is readable at a glance. */
+.segment {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--color-rule);
+  border-radius: 12px;
+  background: var(--color-sheet);
+}
+
+.segment > button {
+  padding: 0.42rem 0.85rem;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 550;
+  color: var(--color-ink-faint);
+  cursor: pointer;
+  transition:
+    background-color 0.22s var(--ease-out-soft),
+    color 0.22s var(--ease-out-soft),
+    transform 0.16s var(--ease-out-soft);
+}
+
+.segment > button:hover:not([aria-pressed="true"]) {
+  color: var(--color-ink);
+  background: var(--color-raised);
+}
+
+.segment > button:active {
+  transform: scale(0.97);
+}
+
+.segment > button[aria-pressed="true"] {
+  background: var(--color-indigo);
+  color: var(--color-paper);
+}
+
+:root[data-theme="light"] .segment > button[aria-pressed="true"] {
+  color: #ffffff;
+}
+
+.segment > button:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 1px;
+}
+
+/* ── citation chips ───────────────────────────────────────────────────────
+   A chip is a claim you can open. Verified reads cyan; unresolved reads rose,
+   and is the only place rose appears inside running text. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.08rem 0.42rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--color-indigo) 45%, transparent);
+  background: var(--color-indigo-wash);
+  color: var(--color-indigo);
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  cursor: pointer;
+  transition:
+    background-color 0.18s var(--ease-out-soft),
+    box-shadow 0.18s var(--ease-out-soft),
+    transform 0.14s var(--ease-out-soft);
+}
+
+.chip:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--glow);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 2px;
 }
 
 .chip-broken {
-  color: var(--color-oxblood);
-  border: 1px solid color-mix(in oklab, var(--color-oxblood) 40%, transparent);
+  border-color: color-mix(in srgb, var(--color-oxblood) 45%, transparent);
   background: var(--color-oxblood-wash);
+  color: var(--color-oxblood);
 }
 
-/* ── motion ───────────────────────────────────────────────────────────────
-   Precision, not atmosphere. A rule draws itself; content cuts in. No fades of
-   whole panels, no floating, no glow pulses.
-
-   Entrance is CSS, never a JS library: content that starts at opacity 0 and
-   waits for requestAnimationFrame is invisible if that animation never runs. */
-
-@keyframes draw-rule {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
+.chip-broken:hover {
+  box-shadow: 0 0 22px -8px var(--color-oxblood);
 }
 
-.draw-rule {
-  transform-origin: left;
-  animation: draw-rule 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+/* ── the dropzone ─────────────────────────────────────────────────────────
+   An empty screen is an invitation to act, so this is the largest interactive
+   target on the page and it says plainly what it accepts. */
+.dropzone {
+  border: 1.5px dashed var(--color-rule-strong);
+  border-radius: 16px;
+  background: var(--color-sheet);
+  transition:
+    border-color 0.22s var(--ease-out-soft),
+    background-color 0.22s var(--ease-out-soft),
+    transform 0.22s var(--ease-out-soft);
+}
+
+.dropzone[data-active="true"] {
+  border-color: var(--color-indigo);
+  border-style: solid;
+  background: var(--color-indigo-wash);
+  transform: scale(1.008);
+}
+
+.dropzone:focus-within {
+  border-color: var(--color-indigo);
+}
+
+/* ── stamps ───────────────────────────────────────────────────────────────
+   A status word, set in whichever spectrum colour matches its meaning. */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* ── entrances ────────────────────────────────────────────────────────────
+   One orchestrated load, staggered by depth. Nothing animates on scroll: the
+   page is short, and a second reveal would read as decoration. */
+.cut-in {
+  animation: cut-in 0.55s var(--ease-out-soft) both;
+}
+
+.cut-in-slow {
+  animation: cut-in 0.8s var(--ease-out-soft) both;
 }
 
 @keyframes cut-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.cut-in { animation: cut-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both; }
-.cut-in-slow { animation: cut-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
-
-/* The stamp that advances through the pipeline: a hard block that fills. */
-@keyframes stamp {
-  0%, 100% { opacity: 0.25; }
-  50% { opacity: 1; }
+.draw-rule {
+  animation: draw-rule 0.8s var(--ease-out-soft) both;
+  transform-origin: left;
 }
 
-.stamp { animation: stamp 1.1s steps(2, jump-none) infinite; }
-
-/* Typing caret, set as a solid ink block like a proofing mark. */
-@keyframes caret {
-  0%, 45% { opacity: 1; }
-  55%, 100% { opacity: 0; }
+@keyframes draw-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 .caret::after {
   content: "";
   display: inline-block;
-  width: 0.42em;
-  height: 0.95em;
+  width: 0.5ch;
+  height: 1em;
   margin-left: 0.12em;
-  vertical-align: text-bottom;
-  background: var(--color-ink);
-  animation: caret 1s steps(1) infinite;
+  background: var(--color-indigo);
+  vertical-align: -0.12em;
+  animation: blink 1.05s steps(2, start) infinite;
 }
 
-/* ── controls ─────────────────────────────────────────────────────────────── */
-
-*:focus-visible {
-  outline: 2px solid var(--color-indigo);
-  outline-offset: 2px;
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
 }
 
-::selection {
-  background: var(--color-indigo-wash);
-}
-
-::-webkit-scrollbar { width: 11px; height: 11px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--color-rule);
-  border: 3px solid var(--color-paper);
-}
-::-webkit-scrollbar-thumb:hover { background: var(--color-ink-faint); }
-
+/* ── quality floor ────────────────────────────────────────────────────────
+   Motion is an enhancement. Everything above still reads with it switched off. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001ms !important;
+    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
-  .cut-in,
-  .cut-in-slow,
-  .draw-rule {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
+
+  .paper-tooth::before {
+    animation: none;
   }
+
+  .btn:hover:not(:disabled),
+  .chip:hover {
+    transform: none;
+  }
+}
+
+::selection {
+  background: var(--color-indigo);
+  color: var(--color-paper);
 }

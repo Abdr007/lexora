@@ -15,7 +15,7 @@ import pytest
 
 from app.core.models import CITATION_RE
 from app.core.settings import Settings
-from app.workspace.chunker import chunk_document, split_sections
+from app.workspace.chunker import chunk_document, coverage, split_sections
 from app.workspace.extract import (
     ExtractionError,
     _assert_public_url,
@@ -226,3 +226,59 @@ class TestSessionIsolation:
         store.add(session.session_id, document, chunks, "doc-a")
         assert store.clear(session.session_id) is True
         assert store.get(session.session_id) is None
+
+
+class TestCoverage:
+    """Every line of an uploaded document must reach the index.
+
+    Chunking is the one stage that can lose text without failing. A dropped paragraph does
+    not raise — it simply never becomes searchable, and the only symptom is a question that
+    should have been answerable coming back refused. Nothing downstream can detect it,
+    because nothing downstream ever saw the missing words.
+    """
+
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "dubai-rent-increase-decree-43-2013.pdf",
+            "dubai-tenancy-amendment-33-2008.pdf",
+            "dubai-tenancy-law-26-2007.pdf",
+            "uae-labour-law-33-2021.pdf",
+        ],
+    )
+    def test_real_pdfs_are_fully_covered(self, name: str, settings: Settings):
+        pdf = REPO_ROOT / "corpus" / "pdf" / name
+        if not pdf.exists():
+            pytest.skip("corpus PDFs not present; run `make corpus`")
+        document = extract_bytes(pdf.read_bytes(), name, settings=settings)
+        chunks = chunk_document(document, "doc-cov", settings)
+        kept = coverage(document, chunks)
+        assert kept == 1.0, f"{name} lost {(1 - kept):.2%} of its words during chunking"
+
+    def test_a_short_opening_paragraph_survives(self, settings: Settings):
+        """The regression: a first section under the merge threshold was dropped outright.
+
+        It could not merge backwards — there was nothing before it — and the branch that
+        would have kept it required a previous section to exist.
+        """
+        document = extract_bytes(
+            b"Short intro.\n\n# Terms\n\n" + b"the clause body continues " * 20,
+            "s.md",
+            settings=settings,
+        )
+        chunks = chunk_document(document, "doc-short", settings)
+        assert coverage(document, chunks) == 1.0
+        assert "Short intro." in chunks[0].text
+
+    def test_heading_words_reach_the_index(self, settings: Settings):
+        """`_match_heading` returns a cleaned label; the raw line has to survive too."""
+        document = extract_bytes(
+            b"## Article (5) Definitions and Interpretation\n\n"
+            + b"the defined terms are set out below and apply throughout " * 6,
+            "h.md",
+            settings=settings,
+        )
+        chunks = chunk_document(document, "doc-head", settings)
+        assert coverage(document, chunks) == 1.0
+        joined = " ".join(chunk.text for chunk in chunks)
+        assert "Interpretation" in joined
