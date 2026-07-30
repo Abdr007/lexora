@@ -45,7 +45,7 @@ flowchart TB
         --> EMB["FastEmbed bge-small-en-v1.5<br/>local ONNX · 384-dim"]
         CHUNK --> BM["rank_bm25<br/>sparse index, unstemmed"]
         EMB --> QD[("Qdrant<br/>embedded or Cloud")]
-        BM --> DISK[("bm25.json<br/>chunks.jsonl")]
+        BM --> DISK[("bm25.json<br/>chunks.jsonl<br/>vectors.json")]
     end
 
     subgraph B["Pipeline B — query (online, per question)"]
@@ -213,7 +213,7 @@ lexora/
     app/rag/           parse · chunk · index · retrieve · rerank · generate · verify
     app/guard/         query rewrite + prompt-injection screening
     app/core/          settings · models · claude · embedding · vectorstore · observability
-    tests/             165 tests, run against the real corpus and index
+    tests/             189 tests, run against the real corpus and index
   apps/web/            Next.js 15 · Tailwind 4 · Framer Motion
   corpus/              download.py + provenance manifest (PDFs gitignored)
   eval/                questions.jsonl · ragas_run.py · chunking_experiment.py

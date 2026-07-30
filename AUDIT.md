@@ -42,9 +42,9 @@ two copies that drift.
 | Gate | Command | Result |
 |---|---|---|
 | Lint | `ruff check .` | **All checks passed** |
-| Format | `ruff format --check .` | **51 files already formatted** |
-| Types | `mypy` (`--strict`) | **no issues in 45 source files** |
-| Tests | `pytest` | **165 passed, 0 skipped** |
+| Format | `ruff format --check .` | **56 files already formatted** |
+| Types | `mypy` (`--strict`) | **no issues in 50 source files** |
+| Tests | `pytest` | **189 passed, 0 skipped** |
 | Web types | `tsc --noEmit` | **clean** |
 | Web lint | `eslint . --max-warnings 0` | **clean** |
 | Web build | `next build` | **compiled successfully, 5/5 pages** |
@@ -403,9 +403,18 @@ in a single batch.
 
 **Second attempt — stop re-embedding at build time.** The vectors are now a committed
 artefact (`var/index/vectors.json`), so the stage loads them and never constructs a model.
-Verified against a cold var directory containing only the copied index files: **157 MB,
-and no model cache directory was created** — proof the session is genuinely absent rather
-than merely smaller.
+Verified twice: against a cold var directory containing only the copied index files,
+**157 MB and no model cache directory was created** — proof the session is genuinely
+absent rather than merely smaller — and then in the Hugging Face build itself, which
+completed at **161 MB** for the stage that had been killed. The deployed Space reports
+`"vector_points":181`, so the collection was materialised from the file rather than
+rebuilt.
+
+| Stage | Local cold-var simulation | Hugging Face build |
+|---|---|---|
+| `embedding` | 318 MB | 290 MB |
+| `reranker` | 255 MB | 254 MB |
+| `vectorstore` | 157 MB | **161 MB** |
 
 This also closed a correctness gap that was not the reason for the change. Embedding is
 not batch-invariant — padding length varies with batch composition, so the reduction
