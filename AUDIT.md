@@ -444,6 +444,44 @@ budget check over a missing measurement passes vacuously.
 
 ---
 
+### 6.6 The CORS allowlist is not enforceable on Spaces
+
+The API sets an explicit allowlist and never `*`:
+
+```python
+allow_origins=_settings.cors_origins,   # comma-separated, from LEXORA_CORS_ALLOW_ORIGINS
+allow_credentials=False,
+```
+
+Deployed to Spaces, that is not what the browser sees. With the allowlist set to the
+Vercel origin, the platform still answers an unlisted origin:
+
+```
+$ curl -sI -H "Origin: https://evil.example.com" .../api/health
+access-control-allow-origin: https://evil.example.com
+access-control-expose-headers: *
+```
+
+The header is added by Hugging Face's edge, not by this application. Two things prove it
+rather than suggest it: `access-control-expose-headers: *` is returned **even when the
+request carries no `Origin` header at all**, and this app never configures
+`expose_headers`. Spaces are designed to be embeddable, so the platform attaches
+permissive CORS in front of whatever the container sets.
+
+**Impact here is low, and saying otherwise would be theatre.** CORS is a browser policy
+that protects *credentialed* cross-origin reads. This API sets `allow_credentials=False`,
+serves a public corpus of published legislation, holds no session, and rate-limits at
+30/min/IP. A page that can call it from a browser can already call it with `curl`.
+
+**It is still a documentation defect, and that is the finding.** `DEPLOY-SPACES.md` told
+the reader to set the allowlist and implied it would be enforced. On this host it is not.
+The setting is retained because it *is* enforced on Cloud Run, where nothing sits in
+front of the container — so the same image is stricter there than here. Choosing a host
+changes the security properties of an unchanged image, which is the general lesson worth
+carrying to the next deployment.
+
+---
+
 ## 7. Performance
 
 Retrieval + rerank budget: **≤1.5 s on CPU**. 30 queries, warm process, all stages from

@@ -40,6 +40,8 @@ node_modules/
 .next/
 out/
 *.tsbuildinfo
+# Written by `vercel link`; holds the project/org ids for this machine's CLI session.
+.vercel/
 
 .DS_Store
 *.log

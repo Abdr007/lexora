@@ -13,13 +13,17 @@ short_description: "UAE labour & Dubai tenancy law: cited answers, or refusal"
 
 [![CI](https://github.com/Abdr007/lexora/actions/workflows/ci.yml/badge.svg)](https://github.com/Abdr007/lexora/actions/workflows/ci.yml)
 
-**[Live demo →](https://huggingface.co/spaces/Abdr007/lexora)** · API:
-[`/api/health`](https://Abdr007-lexora.hf.space/api/health) ·
-[`/api/laws`](https://Abdr007-lexora.hf.space/api/laws)
+**[Live demo → uselexora.vercel.app](https://uselexora.vercel.app)**
 
-> The Space sleeps after 48 hours idle and takes ~30 s to wake. Ask it
-> *"What is the capital gains tax rate in Singapore?"* to see the refusal path — the
-> part most retrieval demos skip.
+The API is a separate deployment on Hugging Face Spaces —
+[`/api/health`](https://Abdr007-lexora.hf.space/api/health) ·
+[`/api/laws`](https://Abdr007-lexora.hf.space/api/laws) — because the UI is static and the
+API needs a container with 1 GB and two ONNX sessions. The image honours `$PORT`, so the
+same container runs on Cloud Run unchanged.
+
+> The API sleeps after 48 hours idle and takes ~30 s to wake; the first question of the
+> day is slow and the rest are not. Ask it *"What is the capital gains tax rate in
+> Singapore?"* to see the refusal path — the part most retrieval demos skip.
 
 **Grounded RAG over UAE labour law and Dubai tenancy law.** Every claim carries the
 article it came from, every citation opens the exact clause, and when the indexed law

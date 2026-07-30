@@ -149,17 +149,45 @@ The last one must print `refusal`. That is the demo.
 
 ## 7. Point the web app at it
 
+Live at **<https://uselexora.vercel.app>**, pointed at the Space.
+
+**Set the environment variable before the first build, not after.** `next.config.ts`
+derives the CSP's `connect-src` from `NEXT_PUBLIC_API_URL` at *build* time. Deploy without
+it and the shipped policy pins `connect-src` to `http://127.0.0.1:7862`, so every request
+from the browser is blocked by the page's own CSP — which looks exactly like an API
+outage and is invisible in the API's logs, because no request ever leaves the browser.
+
 ```bash
-cd apps/web && npx vercel --prod
+cd apps/web
+vercel link --yes --project lexora
+printf 'https://YOUR_USERNAME-lexora.hf.space' | vercel env add NEXT_PUBLIC_API_URL production
+vercel --prod --yes
 ```
 
-Set `NEXT_PUBLIC_API_URL` to `https://YOUR_USERNAME-lexora.hf.space` in the Vercel
-dashboard, redeploy, then allow that origin on the API — the allowlist is never `*`.
-Space → Settings → Variables:
+Then allow that origin on the API. Space → Settings → Variables:
 
 | Name | Value |
 |---|---|
-| `LEXORA_CORS_ALLOW_ORIGINS` | `https://lexora.vercel.app` |
+| `LEXORA_CORS_ALLOW_ORIGINS` | `https://uselexora.vercel.app` |
+
+Read AUDIT.md §6.6 before trusting that setting: it is honoured on Cloud Run, but Spaces
+attaches its own permissive CORS at the edge, so on *this* host the allowlist does not
+constrain what a browser is allowed to do.
+
+**Turn off Vercel deployment protection.** New projects default to Vercel Authentication,
+which 302s every visitor to a Vercel login page — including the interviewer you sent the
+link to. Project → Settings → Deployment Protection → Vercel Authentication → Disable.
+
+Verify all four in one go, from the UI's own origin:
+
+```bash
+UI=https://uselexora.vercel.app
+curl -sI "$UI/" | grep -i content-security-policy | tr ';' '\n' | grep connect-src  # names the Space
+curl -s -o /dev/null -w '%{http_code}\n' "$UI/"                                     # 200, not 302
+curl -s -D- -o /dev/null -H "Origin: $UI" .../api/health | grep -i allow-origin     # echoes the UI
+curl -s -X POST .../api/ask -H 'Content-Type: application/json' -H "Origin: $UI" \
+  -d '{"question":"What is the capital gains tax rate in Singapore?"}'              # "refusal"
+```
 
 ---
 
