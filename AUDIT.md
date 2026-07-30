@@ -449,8 +449,13 @@ budget check over a missing measurement passes vacuously.
 The API sets an explicit allowlist and never `*`:
 
 ```python
-allow_origins=_settings.cors_origins,   # comma-separated, from LEXORA_CORS_ALLOW_ORIGINS
-allow_credentials=False,
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_settings.cors_origins,  # from LEXORA_CORS_ALLOW_ORIGINS
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 ```
 
 Deployed to Spaces, that is not what the browser sees. With the allowlist set to the
