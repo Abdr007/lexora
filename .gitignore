@@ -22,6 +22,10 @@ var/index/*
 !var/index/chunks.jsonl
 !var/index/bm25.json
 !var/index/index_meta.json
+# Committed so the deployed collection is the one the evaluation scored: re-embedding is
+# only reproducible to ~4e-4 per component. JSON, not .npy — the Hugging Face Hub refuses
+# binary files outside Xet/LFS. See Settings.vectors_path.
+!var/index/vectors.json
 
 .venv/
 __pycache__/

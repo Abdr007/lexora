@@ -24,7 +24,8 @@ def _load_deploy_space() -> ModuleType:
     spec = importlib.util.spec_from_file_location(
         "deploy_space", REPO_ROOT / "scripts" / "deploy_space.py"
     )
-    assert spec is not None and spec.loader is not None
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
@@ -54,10 +55,7 @@ class TestShortDescription:
     def test_exactly_at_the_limit_is_accepted(self):
         at_limit = "x" * deploy_space.SHORT_DESCRIPTION_MAX
         assert (
-            deploy_space.frontmatter_problems(
-                f"sdk: docker\nshort_description: {at_limit}\n"
-            )
-            == []
+            deploy_space.frontmatter_problems(f"sdk: docker\nshort_description: {at_limit}\n") == []
         )
 
     @pytest.mark.parametrize("quote", ['"', "'"])
@@ -93,3 +91,39 @@ class TestSdkDeclaration:
     def test_missing_docker_sdk_is_rejected(self):
         problems = deploy_space.frontmatter_problems("title: Lexora\napp_port: 7860\n")
         assert any("sdk: docker" in problem for problem in problems)
+
+
+class TestPushFailureDiagnosis:
+    """Every branch here was written after being sent to the wrong page by the old one."""
+
+    def test_metadata_rejection_points_at_the_readme(self):
+        stderr = (
+            "remote: Sorry, your push was rejected during YAML metadata verification:\n"
+            'remote: - Error: "short_description" length must be less than or equal to 60'
+        )
+        assert "README.md" in deploy_space.explain_push_failure(stderr)
+
+    def test_binary_rejection_does_not_blame_the_readme(self):
+        """The real regression: this used to be reported as a frontmatter problem."""
+        stderr = (
+            "remote: Your push was rejected because it contains binary files.\n"
+            "remote: Please use https://huggingface.co/docs/hub/xet to store binary files.\n"
+            "remote: Offending files:\n"
+            "remote:   - var/index/vectors.npy (ref: refs/heads/main)\n"
+            "! [remote rejected] main -> main (pre-receive hook declined)"
+        )
+        message = deploy_space.explain_push_failure(stderr)
+        assert "binary" in message
+        assert "README" not in message
+        assert "token" not in message
+
+    def test_auth_rejection_points_at_the_token(self):
+        stderr = "remote: Authentication failed\nfatal: could not read Password"
+        assert "token" in deploy_space.explain_push_failure(stderr)
+
+    def test_unrecognised_rejection_invents_nothing(self):
+        """Silence about the cause beats a confident wrong cause."""
+        message = deploy_space.explain_push_failure("remote: something entirely new")
+        assert "reason is above" in message
+        assert "README" not in message
+        assert "token" not in message

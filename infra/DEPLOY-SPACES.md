@@ -4,25 +4,37 @@
 > claimed 16 GB on the free tier. That was wrong on both counts and is corrected below.
 > **Docker** Spaces — the kind this project needs, because it builds a Dockerfile —
 > require a **PRO subscription ($9/month)**. Only *Static* Spaces remain free, and a
-> static host cannot run a Python API. Cloud Run is the cheaper path: its always-free
-> allowance covers this workload at no cost.
+> static host cannot run a Python API.
+>
+> **This is now the live path.** PRO is subscribed and the Space is deployed at
+> <https://huggingface.co/spaces/Abdr007/lexora>. Cloud Run remains supported and is
+> cheaper in isolation, but one PRO subscription covers every Docker Space on the
+> account, so the marginal cost of the second and third project is zero.
 
 | | Spaces (Docker) | Cloud Run (always-free) |
 |---|---|---|
 | Card required | yes | yes, for verification |
-| Cost | **$9/month** (PRO) | **$0** compute + ~$0.08/mo image storage |
-| RAM | 16 GB | 2 GB |
+| Cost | **$9/month** (PRO), any number of Spaces | **$0** compute + ~$0.08/mo image storage |
+| RAM at runtime | 16 GB | 2 GB |
+| RAM at **build** | lower, and undocumented — see below | same as runtime |
 | Sleeps when idle | after 48 h | scales to zero immediately |
 | Cold start | ~30 s | ~15–25 s |
 | Résumé keyword | Docker, Hugging Face | **GCP, Cloud Run** |
 
-Both clear the bar that matters: the service peaks at **524 MB** in a container and is
-OOM-killed under 512 MB (AUDIT.md §6.4), which is what removed the free 512 MB tiers from
-the list. 2 GB is measured headroom, not a guess.
+Both clear the bar that matters at runtime: the service peaks at **524 MB** in a
+container and is OOM-killed under 512 MB (AUDIT.md §6.4), which is what removed the free
+512 MB tiers from the list. 2 GB is measured headroom, not a guess.
 
-The same image runs on either — the entrypoint honours `$PORT` when one is injected and
-falls back to 7860 — so this is not a fork in the road. Use
-[DEPLOY-CLOUDRUN.md](DEPLOY-CLOUDRUN.md) unless you already pay for PRO.
+**The build container is a separate limit, and it is the one that bites.** Spaces gives
+the *running* Space 16 GB but builds the image somewhere tighter. The first deploy here
+was OOM-killed at build time (exit 137) even though the service fits comfortably in 1 GB
+at runtime — see AUDIT.md §6.5. The bake step is therefore split across three `RUN`
+layers so peak RSS is the largest stage rather than the sum of all three; `scripts/bake.py`
+prints each stage's peak so the margin is visible in the build log rather than inferred
+from a silent kill.
+
+The same image runs on either host — the entrypoint honours `$PORT` when one is injected
+and falls back to 7860 — so this is not a fork in the road.
 
 ---
 

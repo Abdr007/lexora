@@ -67,8 +67,9 @@ def bake_vectorstore() -> str:
     return f"{points} vector points"
 
 
-# Ordered as the Dockerfile runs them: the vector store stage reuses the embedding model
-# the first stage cached, so it must not run before it.
+# Independent of each other: the vector store stage loads its vectors from
+# var/index/vectors.json and never touches an ONNX session, which is what stopped it
+# being OOM-killed. The order below is the Dockerfile's, not a dependency.
 STAGES: Final[dict[str, Callable[[], str]]] = {
     "embedding": bake_embedding,
     "reranker": bake_reranker,

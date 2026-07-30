@@ -5,17 +5,23 @@
 Run with ``make index``. Nothing in the query path ever writes here, which is what makes
 the query path safe to run concurrently: index writes happen only in this script.
 
-Two artefacts are the source of truth and are portable:
+Three artefacts are the source of truth and are portable:
 
 * ``var/index/chunks.jsonl`` — every chunk with its full text and metadata.
 * ``var/index/bm25.json``    — the tokenised sparse index over exactly those chunks.
+* ``var/index/vectors.json`` — their dense vectors, in the same order.
 
-The Qdrant collection is a *derived* cache rebuilt from ``chunks.jsonl`` whenever it is
-missing or stale (:func:`ensure_vector_store`). That indirection matters for deployment:
-embedded Qdrant holds an exclusive lock on its directory, so a container that shipped a
-prebuilt lock file could not be started twice, and a corpus re-download at deploy time
-would be a needless dependency on two government hosts staying up. Rebuilding 181 chunks
-takes a couple of seconds on CPU.
+The Qdrant collection is a *derived* cache rebuilt from those whenever it is missing or
+stale (:func:`ensure_vector_store`). That indirection matters for deployment: embedded
+Qdrant holds an exclusive lock on its directory, so a container that shipped a prebuilt
+lock file could not be started twice, and a corpus re-download at deploy time would be a
+needless dependency on two government hosts staying up.
+
+The vectors are committed rather than recomputed for two reasons. Embedding is not
+batch-invariant, so recomputing them reproduces the evaluated index only to ~4e-4 per
+component; and loading an ONNX session to rebuild them was enough to get the image build
+OOM-killed on Hugging Face (AUDIT.md §6.5). Rebuilding from the file needs no model and
+takes about a second.
 """
 
 from __future__ import annotations
@@ -26,6 +32,8 @@ import logging
 import time
 from dataclasses import dataclass
 from typing import Any
+
+import numpy as np
 
 from app.core.embedding import embed_documents
 from app.core.models import Chunk
@@ -87,6 +95,44 @@ def load_chunks(settings: Settings | None = None) -> list[Chunk]:
         return [Chunk.model_validate_json(line) for line in handle if line.strip()]
 
 
+def write_vectors(vectors: list[list[float]], settings: Settings | None = None) -> None:
+    """Persist the dense vectors beside the chunks they belong to, in the same order."""
+    cfg = settings or get_settings()
+    array = np.asarray(vectors, dtype=np.float32)
+    expected = (len(vectors), cfg.embedding_dim)
+    if array.shape != expected:
+        raise ValueError(f"expected {expected} vectors, got {array.shape}")
+    # ``tolist`` widens each float32 to the float64 that represents it exactly, and JSON
+    # round-trips float64 through repr without loss, so reloading as float32 returns the
+    # identical bits. Written compactly: the default separators add ~250 KB of spaces.
+    with cfg.vectors_path.open("w", encoding="utf-8") as handle:
+        json.dump(array.tolist(), handle, separators=(",", ":"))
+
+
+def load_vectors(count: int, settings: Settings | None = None) -> list[list[float]] | None:
+    """Read the persisted vectors, or ``None`` if absent or not matching the chunks.
+
+    Returning ``None`` rather than raising keeps re-embedding available as a fallback for
+    a checkout that has chunks but no vectors. A mismatch is never silently tolerated:
+    stale vectors paired with fresh chunks would misattribute every citation.
+    """
+    cfg = settings or get_settings()
+    if not cfg.vectors_path.exists():
+        return None
+    with cfg.vectors_path.open(encoding="utf-8") as handle:
+        array = np.asarray(json.load(handle), dtype=np.float32)
+    if array.shape != (count, cfg.embedding_dim):
+        logger.warning(
+            "ignoring %s: shape %s does not match %d chunks of dim %d; re-embedding",
+            cfg.vectors_path,
+            array.shape,
+            count,
+            cfg.embedding_dim,
+        )
+        return None
+    return [row.tolist() for row in array]
+
+
 def build_index(settings: Settings | None = None) -> IndexReport:
     """Parse the corpus, chunk it, and write both indexes."""
     cfg = settings or get_settings()
@@ -106,6 +152,7 @@ def build_index(settings: Settings | None = None) -> IndexReport:
     embed_started = time.perf_counter()
     vectors = embed_documents([chunk.text for chunk in chunks], cfg)
     embed_seconds = time.perf_counter() - embed_started
+    write_vectors(vectors, cfg)
 
     recreate_collection(cfg)
     written = upsert_chunks(chunks, vectors, cfg)
@@ -160,7 +207,19 @@ def ensure_vector_store(settings: Settings | None = None) -> int:
         existing,
         len(chunks),
     )
-    vectors = embed_documents([chunk.text for chunk in chunks], cfg)
+    # Prefer the persisted vectors. Beyond saving the work, this is what keeps a
+    # deployed container serving the same numbers the evaluation scored: re-embedding
+    # reproduces them only to ~4e-4 per component, because padding length — and so the
+    # order of the reductions — depends on how the batch happened to be composed.
+    #
+    # It is also what lets the image be built at all. Loading the ONNX session here, on
+    # top of the batch's activations, was enough to get the Hugging Face build container
+    # OOM-killed (AUDIT.md §6.5).
+    vectors = load_vectors(len(chunks), cfg)
+    if vectors is None:
+        logger.info("no usable %s; embedding %d chunks", cfg.vectors_path, len(chunks))
+        vectors = embed_documents([chunk.text for chunk in chunks], cfg)
+
     recreate_collection(cfg)
     return upsert_chunks(chunks, vectors, cfg)
 

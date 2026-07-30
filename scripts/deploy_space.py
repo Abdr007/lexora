@@ -63,6 +63,33 @@ def frontmatter_problems(frontmatter: str) -> list[str]:
     return problems
 
 
+def explain_push_failure(stderr: str) -> str:
+    """Turn the remote's rejection into the one instruction that acts on it.
+
+    This used to blame a read-only token whatever the remote actually said. The Hub
+    rejects a push for several unrelated reasons and always names the one that applies;
+    guessing sends you to the tokens page while the real fault sits in README.md. When
+    nothing matches, say so rather than inventing a cause.
+    """
+    if "YAML metadata" in stderr:
+        return (
+            "push failed: the Hub rejected the repository metadata. Correct the field "
+            "named above in README.md's frontmatter and re-run."
+        )
+    if "binary files" in stderr:
+        return (
+            "push failed: the Hub refuses binary files outside Xet/LFS. Store the "
+            "offending file above in a text format, or track it with Xet."
+        )
+    if any(marker in stderr for marker in ("Authentication", "401", "403")):
+        return (
+            "push failed: authentication. Create a WRITE token at "
+            "https://huggingface.co/settings/tokens and log in again with "
+            "`hf auth login --token hf_... --add-to-git-credential`."
+        )
+    return "push failed. The remote's reason is above."
+
+
 def preflight() -> list[str]:
     problems: list[str] = []
     for relative in REQUIRED:
@@ -142,23 +169,7 @@ def main(argv: list[str] | None = None) -> int:
     if pushed.returncode != 0:
         stderr = pushed.stderr.strip()
         print(stderr[-1500:])
-        # This used to blame a read-only token whatever the remote actually said. The
-        # Hub rejects a push for several unrelated reasons and it always names the one
-        # that applies; guessing sends you to the tokens page while the real fault sits
-        # in README.md.
-        if "YAML metadata" in stderr or "pre-receive hook declined" in stderr:
-            print(
-                "\npush failed: the Hub rejected the repository metadata. Correct the "
-                "field named above in README.md's frontmatter and re-run."
-            )
-        elif any(marker in stderr for marker in ("Authentication", "401", "403")):
-            print(
-                "\npush failed: authentication. Create a WRITE token at "
-                "https://huggingface.co/settings/tokens and log in again with "
-                "`hf auth login --token hf_... --add-to-git-credential`."
-            )
-        else:
-            print("\npush failed. The remote's reason is above.")
+        print(f"\n{explain_push_failure(stderr)}")
         return 1
 
     print(f"\n  deployed  {remote_url}")

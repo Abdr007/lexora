@@ -113,7 +113,13 @@ jobs:
           apps/api/.venv/bin/python corpus/download.py
           PYTHONPATH=apps/api apps/api/.venv/bin/python -m app.rag.index
       - name: Build the image
-        run: docker build -t lexora-api:ci .
+        run: docker build --progress=plain -t lexora-api:ci . 2>&1 | tee build.log
+
+      # A runner has gigabytes to spare, so a successful `docker build` says nothing
+      # about a constrained builder. Two deploys were lost to a build-time OOM that CI
+      # could not see. Gate on the peak RSS each bake stage reports instead.
+      - name: Bake stages stayed within their memory budget
+        run: apps/api/.venv/bin/python scripts/check_bake_budget.py build.log
       - name: Boot it and check readiness
         run: |
           docker run -d --name lexora -p 7860:7860 lexora-api:ci

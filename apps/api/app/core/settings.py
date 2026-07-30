@@ -209,6 +209,26 @@ class Settings(BaseSettings):
         return self.index_dir / "bm25.json"
 
     @property
+    def vectors_path(self) -> Path:
+        """Dense vectors for exactly the chunks in ``chunks_path``, in the same order.
+
+        The third portable artefact. Committed for the same reason as the other two, and
+        for one more: embedding is not batch-invariant. Padding length varies with batch
+        composition, so re-embedding the corpus elsewhere reproduces the vectors only to
+        ~4e-4 per component — enough to move a borderline score across the calibrated
+        refusal floor. Shipping the vectors means the deployed index is the index the
+        evaluation scored, bit for bit, rather than a near-copy of it.
+
+        JSON rather than ``.npy`` deliberately. The Hugging Face Hub refuses binary files
+        outside Xet/LFS, and routing this through LFS would mean every consumer needs
+        ``lfs: true`` on checkout — including the CI job that builds the image, where a
+        pointer file would produce a container that silently re-embedded instead of
+        failing. Text costs ~1.4 MB instead of 272 KB and removes that whole failure
+        mode. float32 values round-trip through JSON exactly (test_index_vectors.py).
+        """
+        return self.index_dir / "vectors.json"
+
+    @property
     def index_meta_path(self) -> Path:
         return self.index_dir / "index_meta.json"
 
