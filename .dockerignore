@@ -7,6 +7,8 @@ corpus/pdf
 .git
 .github
 apps/web
+# README screenshots: 400 KB of PNGs the API never serves.
+docs
 # eval/results is NOT excluded: the image serves it at /api/metrics. It was listed here
 # while nothing in the image read it, and adding the COPY without removing this line
 # failed the build with "/eval/results: not found" — the files are in the repository and

@@ -11,9 +11,35 @@ short_description: "UAE labour & Dubai tenancy law: cited answers, or refusal"
 
 # Lexora
 
-[![CI](https://github.com/Abdr007/lexora/actions/workflows/ci.yml/badge.svg)](https://github.com/Abdr007/lexora/actions/workflows/ci.yml)
+**Ask a document a question. Get the exact clause — or an honest "not in here."**
 
-**[Live demo → uselexora.vercel.app](https://uselexora.vercel.app)**
+[![CI](https://github.com/Abdr007/lexora/actions/workflows/ci.yml/badge.svg)](https://github.com/Abdr007/lexora/actions/workflows/ci.yml)
+![tests](https://img.shields.io/badge/tests-227-2dd4e8)
+![coverage](https://img.shields.io/badge/ingest%20coverage-100%25-2dd4e8)
+![refusal](https://img.shields.io/badge/refusal%20accuracy-0.80-8b7cf6)
+![mypy](https://img.shields.io/badge/mypy-strict-8b7cf6)
+![python](https://img.shields.io/badge/python-3.12-6b7299)
+
+**[▸ Live demo — uselexora.vercel.app](https://uselexora.vercel.app)**
+
+![Lexora answering from UAE labour law](docs/screens/law-dark.png)
+
+Bring UAE labour and Dubai tenancy law — indexed, pinned by SHA-256 — or bring a contract,
+a lease, a scanned page or a link of your own. Every claim carries the clause it came
+from, every citation opens the real text, and when the source does not cover the question
+Lexora says so and shows the passages it rejected with the scores that rejected them.
+
+> **The colour is the score.** Cyan is a verified citation, violet is evidence, amber is a
+> near miss, rose is a citation that did not resolve. The glowing line across the hero is
+> the refusal threshold: passages above it can be answered from, passages below it cannot.
+> Ask *"What is the capital gains tax rate in Singapore?"* to watch nothing cross it.
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screens/workspace-dark.png" alt="Bring your own document"><br><sub><b>Bring your own document</b> — PDF, Word, a photo of a page, or a link. Held in memory for the session, never written to disk.</sub></td>
+<td width="50%"><img src="docs/screens/law-light.png" alt="Light theme"><br><sub><b>Light and dark are both designed</b>, not inverted — the spectrum darkens so every hue still passes contrast on paper.</sub></td>
+</tr>
+</table>
 
 The API is a separate deployment on Hugging Face Spaces —
 [`/api/health`](https://Abdr007-lexora.hf.space/api/health) ·
@@ -22,14 +48,7 @@ API needs a container with 1 GB and two ONNX sessions. The image honours `$PORT`
 same container runs on Cloud Run unchanged.
 
 > The API sleeps after 48 hours idle and takes ~30 s to wake; the first question of the
-> day is slow and the rest are not. Ask it *"What is the capital gains tax rate in
-> Singapore?"* to see the refusal path — the part most retrieval demos skip.
-
-**Grounded RAG with two corpora: UAE labour and Dubai tenancy law, or a document you
-bring.** Every claim carries the article it came from, every citation opens the exact
-clause, and when the indexed law does not cover a question the system says so — and shows
-the passages it rejected, with
-the scores that rejected them.
+> day is slow and the rest are not.
 
 Retrieval quality is measured against a 61-question hand-labelled set, not asserted.
 
