@@ -8,6 +8,7 @@
 ![refusal](https://img.shields.io/badge/refusal%20accuracy-0.80-8b7cf6)
 ![mypy](https://img.shields.io/badge/mypy-strict-8b7cf6)
 ![python](https://img.shields.io/badge/python-3.12-6b7299)
+![licence](https://img.shields.io/badge/licence-MIT-6b7299)
 
 **[▸ Live demo — uselexora.vercel.app](https://uselexora.vercel.app)**
 
