@@ -193,10 +193,3 @@ def get_store(settings: Settings | None = None) -> SessionStore:
         if _STORE is None:
             _STORE = SessionStore(settings)
         return _STORE
-
-
-def reset_store() -> None:
-    """Drop every session. Used by tests; also the honest answer to a restart."""
-    global _STORE  # noqa: PLW0603 - mirrors get_store
-    with _STORE_LOCK:
-        _STORE = None

@@ -44,7 +44,7 @@ two copies that drift.
 | Lint | `ruff check .` | **All checks passed** |
 | Format | `ruff format --check .` | **56 files already formatted** |
 | Types | `mypy` (`--strict`) | **no issues in 50 source files** |
-| Tests | `pytest` | **189 passed, 0 skipped** |
+| Tests | `pytest` | **227 passed, 0 skipped** |
 | Web types | `tsc --noEmit` | **clean** |
 | Web lint | `eslint . --max-warnings 0` | **clean** |
 | Web build | `next build` | **compiled successfully, 5/5 pages** |

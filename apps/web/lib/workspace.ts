@@ -121,16 +121,6 @@ export async function removeDocument(docId: string): Promise<Workspace> {
   );
 }
 
-/** Delete everything in this session. The forget button has to actually forget. */
-export async function clearWorkspace(): Promise<void> {
-  await fetch(`${API_URL}/api/workspace`, { method: "DELETE", headers: sessionHeaders() });
-  try {
-    window.sessionStorage.removeItem(SESSION_KEY);
-  } catch {
-    /* nothing to clear */
-  }
-}
-
 export const ACCEPTED_FILE_TYPES =
   ".pdf,.docx,.txt,.md,.markdown,.rst,.csv,.log,.html,.htm,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp";
 

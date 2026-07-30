@@ -8,7 +8,7 @@
 #   make check     every quality gate, exactly as CI runs them
 #   make eval      evaluate retrieval with and without reranking
 #
-# Ports are deliberately non-default (API 7861, web 3020): 7860 and 3000 are
+# Ports are deliberately non-default (API 7862, web 3020): 7860 and 3000 are
 # commonly already taken, and silently binding a neighbouring project's port is a
 # confusing way to fail.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -16,7 +16,10 @@
 SHELL := /bin/bash
 PY    := apps/api/.venv/bin/python
 PIP   := uv pip install --python apps/api/.venv/bin/python
-API_PORT ?= 7861
+# Must match scripts/dev.sh, which owns the port. They disagreed: `make dev`
+# started the API on 7862 while `make api` started it on 7861, so the web app
+# pointed at whichever had been run last.
+API_PORT ?= 7862
 WEB_PORT ?= 3020
 export PYTHONPATH := apps/api
 

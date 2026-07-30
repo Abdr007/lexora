@@ -202,67 +202,68 @@ any.
 
 ---
 
-## Free deployment
+## How it is actually deployed
 
-Total cost **$0**. Embeddings and reranking run locally on CPU; Claude is the only paid
-API and costs roughly $0.002–0.01 per query.
+Not hypothetically. These are the two hosts serving the links at the top of this file.
 
-### API — GCP Cloud Run (always-free tier)
-
-2M requests and 360k GB-seconds per month, forever. `min_instances = 0` so an idle
-service bills nothing; the models are baked into the image so a cold start is a model
-load rather than a download.
+| | Host | Why |
+|---|---|---|
+| **API** | Hugging Face Docker Space | Needs a container with 1 GB and two ONNX sessions. Requires a PRO subscription ($9/mo), which covers every Docker Space on the account |
+| **Web** | Vercel | Static Next.js export; free tier, and the build is where the CSP is fixed |
 
 ```bash
-gcloud auth login
-gcloud config set project YOUR_PROJECT
-gcloud artifacts repositories create lexora --repository-format=docker --location=europe-west1
+# API — pushes this repo to the Space, which builds the Dockerfile
+python scripts/deploy_space.py --space lexora --public
 
-make index                                        # the image copies the portable index in
-docker build -t europe-west1-docker.pkg.dev/YOUR_PROJECT/lexora/api:latest .
-docker push europe-west1-docker.pkg.dev/YOUR_PROJECT/lexora/api:latest
-
-gcloud run deploy lexora-api \
-  --image europe-west1-docker.pkg.dev/YOUR_PROJECT/lexora/api:latest \
-  --region europe-west1 --allow-unauthenticated \
-  --memory 2Gi --cpu 2 --min-instances 0 --max-instances 3 \
-  --set-env-vars "LEXORA_CORS_ALLOW_ORIGINS=https://lexora.vercel.app"
+# Web — set the variable BEFORE the first build, see below
+cd apps/web
+printf 'https://YOUR_USER-lexora.hf.space' | vercel env add NEXT_PUBLIC_API_URL production
+vercel --prod --yes
 ```
 
-Or declaratively, which is what `infra/terraform/` is for:
+Then allow the UI's origin on the API — Space → Settings → Variables →
+`LEXORA_CORS_ALLOW_ORIGINS=https://uselexora.vercel.app`. Full walkthrough, including
+what each host does and does not enforce, in
+[infra/DEPLOY-SPACES.md](infra/DEPLOY-SPACES.md).
+
+**`NEXT_PUBLIC_API_URL` must exist before the first build.** `next.config.ts` derives the
+CSP's `connect-src` from it at *build* time. Deploy without it and the shipped policy pins
+`connect-src` to localhost, so the browser blocks every call — which looks exactly like an
+API outage and leaves nothing in the API logs, because no request ever leaves the page.
+
+Verify the whole stack, and warm it, in one command:
 
 ```bash
-cd infra/terraform
-terraform init
-terraform apply -var project_id=YOUR_PROJECT -var image=IMAGE_URL
+make verify-hosted     # 8 checks: UI, CSP, health, CORS, both refusals, citations, upload
 ```
 
-The Terraform module provisions the Cloud Run service, a dedicated service account, and
-the Anthropic key in Secret Manager — and sets the three knobs (`min_instances`,
-`memory`, `max_instances`) that actually decide whether this stays inside the free tier.
+Total cost: **$9/month** for the Space, $0 for Vercel. Embeddings and reranking run
+locally on CPU; Claude is the only metered API, at roughly $0.002–0.01 per query.
 
-### A note on the host: this needs 1 GB
+### The host had to have 1 GB, and that decided it
 
 Measured, not estimated. In a container the service peaks at **524 MB** — onnxruntime's
 allocators and the two model sessions do not share the host's page cache, so host RSS
 (155 MB) badly understates it. At a 512 MB cap it is OOM-killed, and thread-count, arena
-and malloc-trim tuning do not close the gap. Details and the full table in
-[AUDIT.md §6.4](AUDIT.md).
+and malloc-trim tuning do not close the gap ([AUDIT.md §6.4](AUDIT.md)).
 
-That rules out the 512 MB free tiers — Render's included. The alternative host is a
-Hugging Face **Docker** Space ([infra/DEPLOY-SPACES.md](infra/DEPLOY-SPACES.md)), which
-has the RAM but now requires a PRO subscription. Cloud Run's always-free allowance covers
-this workload at 2 GB, so it is the recommended target. The image is identical either
-way: the entrypoint honours `$PORT` when one is injected and falls back to 7860.
+That ruled out every 512 MB free tier, Render's included, and is why this runs on a paid
+Space rather than a free host.
 
-### Web — Vercel
+### Cloud Run, if you would rather not pay for a Space
 
-```bash
-cd apps/web && npx vercel --prod
-```
+`infra/terraform/` provisions the same image on GCP Cloud Run — the service, a dedicated
+service account, and the Anthropic key in Secret Manager, with the three knobs
+(`min_instances`, `memory`, `max_instances`) that decide whether it stays inside the
+always-free allowance. It is validated in CI on every push (`terraform fmt` + `validate`)
+but **is not what is running today**, so treat it as a working alternative rather than a
+documented one — `terraform apply -var project_id=... -var image=...` after pushing the
+image to Artifact Registry.
 
-Set `NEXT_PUBLIC_API_URL` to the Cloud Run or Spaces URL, then add that origin to
-`LEXORA_CORS_ALLOW_ORIGINS` on the API. CORS is an allowlist, never `*`.
+The image is identical either way: the entrypoint honours `$PORT` when one is injected and
+falls back to 7860. One genuine difference, worth knowing before you choose — the CORS
+allowlist is enforced on Cloud Run and **is not** on Spaces, which attaches its own
+permissive headers at the edge ([AUDIT.md §6.6](AUDIT.md)).
 
 ### Qdrant and Langfuse
 
@@ -281,7 +282,7 @@ lexora/
     app/rag/           parse · chunk · index · retrieve · rerank · generate · verify
     app/guard/         query rewrite + prompt-injection screening
     app/core/          settings · models · claude · embedding · vectorstore · observability
-    tests/             189 tests, run against the real corpus and index
+    tests/             227 tests, run against the real corpus and index
   apps/web/            Next.js 15 · Tailwind 4 · Framer Motion
   corpus/              download.py + provenance manifest (PDFs gitignored)
   eval/                questions.jsonl · ragas_run.py · chunking_experiment.py

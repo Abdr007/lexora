@@ -75,10 +75,6 @@ class ExtractedDocument:
     def text(self) -> str:
         return "\n\n".join(page.text for page in self.pages if page.text.strip())
 
-    @property
-    def char_count(self) -> int:
-        return sum(len(page.text) for page in self.pages)
-
 
 # ── text hygiene ─────────────────────────────────────────────────────────────
 
