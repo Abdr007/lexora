@@ -7,7 +7,10 @@ corpus/pdf
 .git
 .github
 apps/web
-eval/results
+# eval/results is NOT excluded: the image serves it at /api/metrics. It was listed here
+# while nothing in the image read it, and adding the COPY without removing this line
+# failed the build with "/eval/results: not found" — the files are in the repository and
+# in the Space, and Docker simply could not see them. ~40 KB of JSON.
 **/__pycache__
 **/.pytest_cache
 **/.mypy_cache
