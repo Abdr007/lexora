@@ -24,7 +24,10 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 from typing import Any, Final
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 UI_DEFAULT: Final = "https://uselexora.vercel.app"
 API_DEFAULT: Final = "https://Abdr007-lexora.hf.space"
@@ -32,6 +35,8 @@ API_DEFAULT: Final = "https://Abdr007-lexora.hf.space"
 # A cold Space wakes in ~30 s and then loads two ONNX sessions.
 TIMEOUT_S: Final = 120
 HTTP_OK: Final = 200
+HTTP_CREATED: Final = 201
+HTTP_NO_CONTENT: Final = 204
 HTTP_FOUND: Final = 302
 
 
@@ -64,8 +69,12 @@ def _request(
         return int(exc.code), _lower_keys(exc.headers), exc.read()
 
 
-def _json(url: str, *, body: dict[str, Any] | None = None, origin: str) -> Any:
+def _json(
+    url: str, *, body: dict[str, Any] | None = None, origin: str, session: str | None = None
+) -> Any:
     headers = {"Origin": origin}
+    if session:
+        headers["X-Lexora-Session"] = session
     payload = None
     if body is not None:
         headers["Content-Type"] = "application/json"
@@ -148,6 +157,93 @@ def check_refuses(api: str, origin: str, question: str, label: str) -> str:
     return f"{label} → refusal"
 
 
+def check_workspace_round_trip(api: str, origin: str, sample: Path) -> str:
+    """Upload a real document, ask it a question, then delete it.
+
+    The upload path is the newest and least watched surface, and every one of its failure
+    modes is quiet: an ingest that loses text still answers, a session that leaks still
+    answers, a citation regex that stops matching still answers. Only a round trip against
+    the live service catches those, so this does the whole loop and then removes what it
+    added rather than leaving a document in a stranger-facing demo.
+    """
+    if not sample.exists():
+        raise CheckError(f"{sample} is missing; run `make corpus`")
+
+    status, headers, _ = _request(f"{api}/api/workspace", headers={"Origin": origin})
+    session = headers.get("x-lexora-session", "")
+    if status != HTTP_OK or not session:
+        raise CheckError(f"no workspace session issued (HTTP {status})")
+
+    boundary = "----lexoraverify0000"
+    body = (
+        (
+            f"--{boundary}\r\n"
+            'Content-Disposition: form-data; name="file"; filename="verify.pdf"\r\n'
+            "Content-Type: application/pdf\r\n\r\n"
+        ).encode()
+        + sample.read_bytes()
+        + f"\r\n--{boundary}--\r\n".encode()
+    )
+
+    status, _, raw = _request(
+        f"{api}/api/workspace/upload",
+        method="POST",
+        body=body,
+        headers={
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "X-Lexora-Session": session,
+            "Origin": origin,
+        },
+    )
+    if status != HTTP_CREATED:
+        raise CheckError(f"upload returned HTTP {status}: {raw[:200].decode('utf-8', 'replace')}")
+
+    workspace = json.loads(raw)
+    document = workspace["documents"][0]
+    if workspace.get("calibrated") is not False:
+        raise CheckError("workspace did not report calibrated=false")
+    if document["coverage"] < 1.0:
+        raise CheckError(
+            f"only {document['coverage']:.2%} of the document reached the index — "
+            "chunking is losing text"
+        )
+
+    answer = _json(
+        f"{api}/api/ask",
+        body={"question": "Can a landlord increase the rent?", "scope": "workspace"},
+        origin=origin,
+        session=session,
+    )
+    cited = [c for c in answer.get("citations", []) if c.get("status") == "verified"]
+    if answer.get("kind") != "answer" or not cited:
+        raise CheckError(
+            f"asked the uploaded document and got '{answer.get('kind')}' with "
+            f"{len(cited)} verified citations"
+        )
+
+    refusal = _json(
+        f"{api}/api/ask",
+        body={"question": "What is the capital gains tax rate in Singapore?", "scope": "workspace"},
+        origin=origin,
+        session=session,
+    )
+    if refusal.get("kind") != "refusal":
+        raise CheckError(f"off-topic question returned '{refusal.get('kind')}', not a refusal")
+
+    status, _, _ = _request(
+        f"{api}/api/workspace",
+        method="DELETE",
+        headers={"X-Lexora-Session": session, "Origin": origin},
+    )
+    if status != HTTP_NO_CONTENT:
+        raise CheckError(f"delete returned HTTP {status}; the demo document was left behind")
+
+    return (
+        f"{document['pages']}p → {document['chunks']} chunks, coverage "
+        f"{document['coverage']:.0%}, {len(cited)} verified citations, deleted"
+    )
+
+
 def check_answers(api: str, origin: str, question: str) -> str:
     data = _json(f"{api}/api/ask", body={"question": question}, origin=origin)
     if data.get("kind") != "answer":
@@ -189,6 +285,12 @@ def main(argv: list[str] | None = None) -> int:
         (
             "answers with citations",
             lambda: check_answers(api, ui, "How much end-of-service money do I get after 6 years?"),
+        ),
+        (
+            "upload · ask · delete",
+            lambda: check_workspace_round_trip(
+                api, ui, REPO_ROOT / "corpus" / "pdf" / "dubai-rent-increase-decree-43-2013.pdf"
+            ),
         ),
     ]
 

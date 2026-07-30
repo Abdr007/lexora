@@ -445,6 +445,92 @@ budget check over a missing measurement passes vacuously.
 
 ---
 
+### 6.7 Bring your own document
+
+A second corpus: whatever the user uploads. The pipeline is shared — retrieval, RRF,
+reranking, the refusal gate and citation verification are the corpus's code, unmodified.
+Three things are deliberately *not* shared, and each is a correction rather than a
+convenience.
+
+| | Law corpus | Workspace | Why |
+|---|---|---|---|
+| Dense index | Qdrant | numpy matmul over session vectors | Embedded Qdrant holds an exclusive directory lock. Per-session collections would serialise every user behind one writer, and writing uploads into the shared collection would mix a stranger's contract into the collection §5 measured |
+| Jurisdiction check | on | **off** | It encodes which legislatures *this corpus* covers. Applied to a contract the user uploaded, it would refuse a question about their own Saudi employment agreement |
+| Refusal floor | −3.6, fitted | −8.0, permissive | The fitted floor was measured against 61 labelled questions about the corpus. It does not transfer, and a confident refusal on an un-evaluated document is the overclaim this project exists to avoid |
+
+Every response carries `calibrated: false`, and the interface reads that flag rather than
+being trusted to remember.
+
+#### Coverage: every word, measured
+
+Chunking is the one stage that can lose text without failing. A dropped paragraph does not
+raise — it never becomes searchable, and the only symptom is a question that should have
+been answerable coming back refused. Nothing downstream can detect it, because nothing
+downstream ever saw the missing words.
+
+`chunker.coverage()` compares the document and its chunks as **word multisets** (chunk text
+carries an added heading line and overlapping pieces repeat words, so string equality would
+fail on a correct result). Measured against the four real corpus PDFs, treated as uploads:
+
+| Document | Before | After |
+|---|---|---|
+| Rent decree | 100% | 100% |
+| Tenancy amendment | 99.65% | **100%** |
+| Tenancy law | 99.75% | **100%** |
+| Labour law (38 pp) | 97.09% | **100%** |
+
+Two defects accounted for all of it:
+
+* **A first section under the merge threshold was dropped outright.** Short sections merge
+  into the previous one; the first has no previous, and the branch that would have kept it
+  required a previous section to exist. Any document opening with a short paragraph lost
+  that paragraph.
+* **Heading lines never reached the body.** `_match_heading` returns a *cleaned* label, so
+  `## Article (5) Definitions` was indexed as `5 Definitions` — one heading per section
+  gone, and headings carry the exact terms people search for.
+
+A test pins each PDF at exactly `1.0`, so a future change to the chunker fails here rather
+than in production silently.
+
+**Truncation is surfaced, not logged.** A document longer than `workspace_max_pages` is
+cut, and an answer drawn from a cut document reads exactly like one drawn from a whole
+document. The API returns `truncated` and `coverage` per document; the UI says so in amber.
+
+#### The citation verifier stopped matching, and did not fail
+
+`CITATION_RE` hard-coded `Article` and excluded digits from the label, so
+`[lease.pdf, Section 4]` matched nothing. It did not raise — it returned zero citations,
+and the answer rendered as though the model had cited nothing at all. Found by comparing a
+workspace answer (`citations: []`) against a corpus answer (`[51, 65, 30]`) on the same
+build; nothing else would have surfaced it. The pattern now accepts Article / Art. /
+Section / Clause / Paragraph / Page and filenames containing digits, dots and underscores.
+
+#### Hardening
+
+* **SSRF.** The server fetches a URL a stranger supplied. Every address the hostname
+  resolves to is checked, not merely the first, and each redirect hop is re-validated by
+  hand — `follow_redirects` would validate only the URL supplied and then chase a 302 into
+  the private network. Loopback, private, link-local (including `169.254.169.254`),
+  reserved and multicast are refused, as is any scheme other than http/https.
+* **Session isolation.** The id is 256 bits of `secrets.token_urlsafe`, issued
+  server-side. A client-supplied id that does not exist creates an empty session rather
+  than reading someone else's.
+* **Bounds.** Size, page, document and session caps, LRU eviction, TTL purge on access.
+  Nothing is written to disk, so "what happens to my file?" has a short true answer.
+* **A lying extension loses to magic bytes.** A `.txt` that is really a PDF is read as a
+  PDF; the extension is a claim by whoever uploaded the file.
+* **The body-size middleware would have rejected every upload.** It runs before routing and
+  capped requests at 64 KB, so a PDF would have returned 413 before reaching the endpoint
+  that knows the real limit. The workspace path now carries its own ceiling.
+
+#### What is still unmeasured
+
+Retrieval quality over an uploaded document. §5's numbers describe the law corpus and
+nothing else. The workspace is labelled `calibrated: false` everywhere it is exposed,
+which is honest but is not a measurement, and is the largest open item in this section.
+
+---
+
 ### 6.6 The CORS allowlist is not enforceable on Spaces
 
 The API sets an explicit allowlist and never `*`:

@@ -61,9 +61,12 @@ export const viewport: Viewport = {
 const THEME_BOOTSTRAP = `
 (function () {
   try {
+    // ?theme= wins over both, so a light or dark view can be linked to directly and
+    // captured in a screenshot without driving the toggle.
+    var forced = new URLSearchParams(location.search).get("theme");
     var saved = localStorage.getItem("lexora-theme");
     var prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
-    var theme = saved || (prefersLight ? "light" : "dark");
+    var theme = forced || saved || (prefersLight ? "light" : "dark");
     if (theme === "light") document.documentElement.setAttribute("data-theme", "light");
   } catch (e) {}
 })();

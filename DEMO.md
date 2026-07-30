@@ -1,6 +1,6 @@
 # Demo script
 
-Six minutes, eight states, no surprises. Every number below is measured and reproducible —
+Seven minutes, six moves, no surprises. Every number below is measured and reproducible —
 see [AUDIT.md](AUDIT.md) for how.
 
 The thing being demonstrated is not "a RAG app answers questions." It is **a RAG system
@@ -17,7 +17,7 @@ your machine.
 make verify-hosted    # checks the live stack AND warms it
 ```
 
-Must end with `all 7 checks passed · the Space is warm · ready to present`. Run it a
+Must end with `all 8 checks passed · the Space is warm · ready to present`. Run it a
 minute or two before the call, not the night before: the API sleeps after 48 hours idle
 and takes ~30 s to wake, and this is what pays that cost instead of your first question
 doing it in front of someone.
@@ -27,9 +27,11 @@ doing it in front of someone.
 | UI | <https://uselexora.vercel.app> |
 | API | <https://Abdr007-lexora.hf.space> |
 
-It checks the two things that fail *silently* on a hosted deploy — a UI redirecting
-visitors to a login page, and a CSP that blocks every call from inside the browser.
-Neither appears in the API logs, because in both cases no request ever reaches the API.
+It checks the things that fail *silently* on a hosted deploy — a UI redirecting visitors
+to a login page, and a CSP that blocks every call from inside the browser. Neither appears
+in the API logs, because in both cases no request ever reaches the API. The last check
+uploads a real document, asks it a question, and deletes it again, so the upload path is
+proven end to end before you demonstrate it rather than during.
 
 **Presenting from your laptop** — offline, or on a network you don't trust:
 
@@ -93,8 +95,9 @@ Note what the question does *not* contain: "gratuity", "end of service benefits"
 Point at three things as the answer streams:
 
 - **Citation chips** — every clause carries one; click to open the exact source passage
-- **The Provenance Rail** — dense rank, sparse rank, RRF score, rerank score, final rank,
-  per passage. The whole score trail, not a similarity number
+- **"How the answer was found"** in the right-hand panel — dense rank, sparse rank, RRF
+  score, rerank score and final rank, per passage. The whole score trail, not a single
+  similarity number
 - **`3/3 citations verified, 0 unsupported`** — each citation is checked against the
   passage it claims. A fabricated one is flagged, never silently deleted
 
@@ -119,7 +122,38 @@ it is a real question about Article 54.
 
 Blocking a legitimate question is a failure too, and the demo shows both directions.
 
-### 5 · The numbers (90s)
+### 5 · Hand them the keyboard (90s)
+
+Switch to **My documents** and let them upload something of their own. If they have
+nothing to hand, use a contract on your machine — not one of the four corpus PDFs, which
+would look staged.
+
+This is the moment the demo stops being a demo. Say:
+
+> Same retrieval, same reranker, same refusal gate, same citation check. The only thing
+> that changed is where the text came from.
+
+Then point at three things, in this order:
+
+1. **The coverage line.** Every word of the document reached the index — it is asserted
+   per upload, not hoped for. If it had been a 300-page file, it would say so in amber
+   rather than quietly answering from the first 200 pages.
+2. **The citation.** It says *Section 4* or *Page 2*, not *Article 4*. A contract does not
+   have articles, and calling them articles would be a small lie repeated on every chip.
+3. **The amber note in the right-hand panel** — and read it aloud:
+
+> *"Answers here are not measured. The accuracy figures were measured against the UAE law
+> library, not against your file."*
+
+That sentence is the demo. Everything else in this walkthrough is a system doing its job;
+that line is the system declining to take credit it has not earned. If you only get to
+make one point in the whole conversation, make that one.
+
+Then delete it in front of them. The file was never written to disk and the session drops
+when the tab closes — worth saying out loud when the thing you just asked them to upload
+was their employment contract.
+
+### 6 · The numbers (90s)
 
 Open <http://localhost:3020/metrics>, or bring up this table:
 

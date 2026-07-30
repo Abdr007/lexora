@@ -25,9 +25,10 @@ same container runs on Cloud Run unchanged.
 > day is slow and the rest are not. Ask it *"What is the capital gains tax rate in
 > Singapore?"* to see the refusal path — the part most retrieval demos skip.
 
-**Grounded RAG over UAE labour law and Dubai tenancy law.** Every claim carries the
-article it came from, every citation opens the exact clause, and when the indexed law
-does not cover a question the system says so — and shows the passages it rejected, with
+**Grounded RAG with two corpora: UAE labour and Dubai tenancy law, or a document you
+bring.** Every claim carries the article it came from, every citation opens the exact
+clause, and when the indexed law does not cover a question the system says so — and shows
+the passages it rejected, with
 the scores that rejected them.
 
 Retrieval quality is measured against a 61-question hand-labelled set, not asserted.
@@ -42,6 +43,33 @@ latency      p50 618 ms · p95 765 ms   end to end, CPU only, 30 queries warm
 
 The full method, every threshold, and the things that did *not* work are in
 [AUDIT.md](AUDIT.md).
+
+## Bring your own document
+
+Drop a contract, a policy, a lease, a photo of a page, or paste a link. The same
+retrieval, reranking, refusal gate and citation verification run over it — only extraction
+and storage differ.
+
+| | |
+|---|---|
+| Reads | PDF (text layer **and** scanned), DOCX, images, HTML, plain text, or a URL |
+| Scanned pages | OCR — Claude vision when a key is present, Tesseract otherwise |
+| Coverage | **100% of every word reaches the index**, asserted per document and in CI |
+| Storage | In memory for the session. Never written to disk, dropped when the tab closes |
+| Accuracy | **Not measured.** See below — this is the honest part |
+
+**Uploaded documents do not inherit the numbers above, and the API says so.** Every
+workspace response carries `calibrated: false`. The refusal floor was fitted against 61
+labelled questions about *this corpus*; a document uploaded a minute ago has no labelled
+set and no fitted threshold, so the workspace runs a deliberately permissive floor and the
+interface states that the accuracy figures were measured against the law library rather
+than against your file. Borrowing the corpus's credibility for an un-evaluated document
+would be exactly the overclaim this project exists to avoid.
+
+```bash
+curl -X POST https://Abdr007-lexora.hf.space/api/workspace/upload -F file=@contract.pdf
+# → 201 with a session id on X-Lexora-Session, then ask with {"scope": "workspace"}
+```
 
 ---
 
