@@ -13,6 +13,14 @@ short_description: "UAE labour & Dubai tenancy law: cited answers, or refusal"
 
 [![CI](https://github.com/Abdr007/lexora/actions/workflows/ci.yml/badge.svg)](https://github.com/Abdr007/lexora/actions/workflows/ci.yml)
 
+**[Live demo →](https://huggingface.co/spaces/Abdr007/lexora)** · API:
+[`/api/health`](https://Abdr007-lexora.hf.space/api/health) ·
+[`/api/laws`](https://Abdr007-lexora.hf.space/api/laws)
+
+> The Space sleeps after 48 hours idle and takes ~30 s to wake. Ask it
+> *"What is the capital gains tax rate in Singapore?"* to see the refusal path — the
+> part most retrieval demos skip.
+
 **Grounded RAG over UAE labour law and Dubai tenancy law.** Every claim carries the
 article it came from, every citation opens the exact clause, and when the indexed law
 does not cover a question the system says so — and shows the passages it rejected, with
