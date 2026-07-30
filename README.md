@@ -56,9 +56,18 @@ and storage differ.
 | Scanned pages | OCR — Claude vision when a key is present, Tesseract otherwise |
 | Coverage | **100% of every word reaches the index**, asserted per document and in CI |
 | Storage | In memory for the session. Never written to disk, dropped when the tab closes |
-| Accuracy | **Not measured.** See below — this is the honest part |
+| Accuracy | Measured on one document — see below. Still not *calibrated* |
 
-**Uploaded documents do not inherit the numbers above, and the API says so.** Every
+Measured over the Dubai tenancy law uploaded through that path, against 12 hand-labelled
+questions (`make eval-workspace`): **hit-rate@5 1.000, hit-rate@1 0.750, MRR 0.875,
+refusal accuracy 0.750, zero false refusals.** Retrieval scores higher than the corpus
+does, which is a smaller haystack rather than an achievement — 13 chunks against 181. The
+number worth reading is refusal accuracy: 0.75 against the corpus's 0.80, because the
+workspace runs a deliberately permissive floor. One question in four that the document
+cannot answer gets answered anyway, bought in exchange for never wrongly refusing one it
+can. AUDIT.md §6.7 argues why that trade is right here and wrong as a permanent setting.
+
+**Uploaded documents do not inherit the corpus's numbers, and the API says so.** Every
 workspace response carries `calibrated: false`. The refusal floor was fitted against 61
 labelled questions about *this corpus*; a document uploaded a minute ago has no labelled
 set and no fitted threshold, so the workspace runs a deliberately permissive floor and the

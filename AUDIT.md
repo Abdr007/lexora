@@ -523,11 +523,46 @@ Section / Clause / Paragraph / Page and filenames containing digits, dots and un
   capped requests at 64 KB, so a PDF would have returned 413 before reaching the endpoint
   that knows the real limit. The workspace path now carries its own ceiling.
 
-#### What is still unmeasured
+#### Measured: retrieval over an uploaded document
 
-Retrieval quality over an uploaded document. §5's numbers describe the law corpus and
-nothing else. The workspace is labelled `calibrated: false` everywhere it is exposed,
-which is honest but is not a measurement, and is the largest open item in this section.
+`calibrated: false` is an honest disclosure and it is not a measurement. `make
+eval-workspace` closes that: the Dubai tenancy law PDF pushed through the *upload* path,
+with 12 hand-labelled questions — 8 the document answers, 4 it does not.
+
+**Labels are phrases, not ids.** The corpus set labels a question with `law_id` and
+`article_no`, which are stable because the corpus is pinned. An uploaded document has no
+stable ids: `doc_id` is a fresh uuid per ingest and section numbers move whenever the
+chunker changes. So a label names a distinctive phrase from the passage that answers the
+question, and retrieval is correct when a returned passage contains it. Every phrase is
+verified to exist in the extracted text before anything is scored, so a mistyped label
+fails loudly instead of quietly depressing the score.
+
+| Metric | Workspace (uploaded) | Law corpus (§5) |
+|---|---|---|
+| hit-rate@5 | **1.0000** | 0.9348 |
+| hit-rate@1 | **0.7500** | 0.7391 |
+| MRR | **0.8750** | 0.8109 |
+| refusal accuracy | **0.7500** | 0.8000 |
+| false refusals | **0** | 0 |
+| latency | p50 323 ms · p95 394 ms | p50 618 ms · p95 765 ms |
+
+Retrieval is *better* here, and that is not a result to be proud of — it is a smaller
+haystack. 13 chunks against 181, on a document about one subject. The comparison worth
+making is the other one.
+
+**Refusal accuracy is 0.75, and the miss is the point.** *"What is the minimum wage in
+Dubai?"* was answered when the tenancy law does not address it. That is the permissive
+floor doing exactly what it was set to do: −8.0 instead of the corpus's fitted −3.6,
+chosen because an un-evaluated document cannot justify a confident threshold. The cost is
+now a number rather than a guess — **one refusal in four, bought in exchange for zero
+false refusals.**
+
+That trade is defensible on a document a user just uploaded, where wrongly refusing a
+question they know their contract answers destroys trust faster than an over-eager answer
+they can check against the quoted clause. It is *not* defensible as a permanent setting,
+and the honest next step is per-document calibration rather than one global floor —
+which needs a labelled set per document and is therefore not something a user can get.
+For now the interface says the answers are not measured, and this section says by how much.
 
 ---
 

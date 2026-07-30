@@ -1,0 +1,118 @@
+{
+  "document": "dubai-tenancy-law-26-2007.pdf",
+  "pages": 10,
+  "chunks": 13,
+  "coverage": 1.0,
+  "questions": {
+    "answerable": 8,
+    "unanswerable": 4
+  },
+  "refusal_score_floor": -8.0,
+  "metrics": {
+    "hit_rate_at_5": 1.0,
+    "hit_rate_at_1": 0.75,
+    "mrr": 0.875,
+    "refusal_accuracy": 0.75,
+    "false_refusals": 0,
+    "latency_p50_ms": 323.8,
+    "latency_p95_ms": 396.3
+  },
+  "per_question": [
+    {
+      "id": "w01",
+      "answerable": true,
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 3.2042346000671387,
+      "latency_ms": 396.3
+    },
+    {
+      "id": "w02",
+      "answerable": true,
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": -3.9976258277893066,
+      "latency_ms": 335.7
+    },
+    {
+      "id": "w03",
+      "answerable": true,
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": -4.566098213195801,
+      "latency_ms": 329.9
+    },
+    {
+      "id": "w04",
+      "answerable": true,
+      "gold_rank": 2,
+      "refused": false,
+      "best_score": -3.266785144805908,
+      "latency_ms": 325.9
+    },
+    {
+      "id": "w05",
+      "answerable": true,
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": -4.494203090667725,
+      "latency_ms": 319.2
+    },
+    {
+      "id": "w06",
+      "answerable": true,
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": -0.7931321263313293,
+      "latency_ms": 323.8
+    },
+    {
+      "id": "w07",
+      "answerable": true,
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 0.4269193410873413,
+      "latency_ms": 319.3
+    },
+    {
+      "id": "w08",
+      "answerable": true,
+      "gold_rank": 1,
+      "refused": false,
+      "best_score": 1.5942165851593018,
+      "latency_ms": 318.7
+    },
+    {
+      "id": "w09",
+      "answerable": false,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -10.957950592041016,
+      "latency_ms": 327.5
+    },
+    {
+      "id": "w10",
+      "answerable": false,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -11.237299919128418,
+      "latency_ms": 317.8
+    },
+    {
+      "id": "w11",
+      "answerable": false,
+      "gold_rank": null,
+      "refused": false,
+      "best_score": -7.507277488708496,
+      "latency_ms": 315.1
+    },
+    {
+      "id": "w12",
+      "answerable": false,
+      "gold_rank": null,
+      "refused": true,
+      "best_score": -8.22653579711914,
+      "latency_ms": 317.6
+    }
+  ]
+}

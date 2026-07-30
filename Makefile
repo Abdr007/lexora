@@ -22,7 +22,7 @@ export PYTHONPATH := apps/api
 
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-api setup-web corpus index reindex warm dev api web stop status \
-        demo verify-hosted check ci ci-cold lint typecheck test fmt web-check \
+        demo verify-hosted eval-workspace check ci ci-cold lint typecheck test fmt web-check \
         terraform-check eval eval-judge \
         calibrate chunking questions docker-build docker-run clean
 
@@ -73,6 +73,9 @@ status: ## show what is running
 
 demo: ## pre-flight every demo state against the running API (run this before presenting)
 	$(PY) scripts/demo_check.py
+
+eval-workspace: ## measure retrieval over an UPLOADED document (the workspace, not the corpus)
+	$(PY) eval/workspace_run.py
 
 verify-hosted: ## pre-flight the DEPLOYED stack, and warm it (run this before presenting remotely)
 	$(PY) scripts/verify_hosted.py

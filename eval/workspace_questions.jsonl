@@ -1,0 +1,12 @@
+{"id": "w01", "question": "How long do I get to pay the rent after the landlord notifies me, before they can evict me?", "answerable": true, "must_contain": "thirty (30) days from the date of service", "note": "eviction during the term for non-payment"}
+{"id": "w02", "question": "Can my landlord kick me out at the end of the lease so the building can be knocked down and rebuilt?", "answerable": true, "must_contain": "demolition and reconstruction", "note": "eviction on expiry, urban development"}
+{"id": "w03", "question": "If they demolish my building and rebuild it, do I get to move back in?", "answerable": true, "must_contain": "right of first refusal", "note": "right to return after reconstruction"}
+{"id": "w04", "question": "How long do I have to claim my right to return once they tell me?", "answerable": true, "must_contain": "not exceeding thirty (30) days from the date the Tenant is notified", "note": "window to exercise the right of first refusal"}
+{"id": "w05", "question": "Does the rental agreement actually have to be written down?", "answerable": true, "must_contain": "written Lease Contract signed by both parties", "note": "form of the contract"}
+{"id": "w06", "question": "Do I have to register my tenancy contract with anyone?", "answerable": true, "must_contain": "registered with RERA", "note": "registration requirement"}
+{"id": "w07", "question": "Who decides what similar places in the area actually rent for?", "answerable": true, "must_contain": "average rental value of similar Real Property", "note": "Tribunal sets the comparable rent"}
+{"id": "w08", "question": "Can the rent be changed when we renew the contract?", "answerable": true, "must_contain": "review the Rent", "note": "rent review on renewal"}
+{"id": "w09", "question": "How much end-of-service gratuity am I owed after six years?", "answerable": false, "must_contain": null, "note": "labour law, not this document"}
+{"id": "w10", "question": "What is the capital gains tax rate in Singapore?", "answerable": false, "must_contain": null, "note": "another jurisdiction and another subject entirely"}
+{"id": "w11", "question": "What is the minimum wage in Dubai?", "answerable": false, "must_contain": null, "note": "not addressed by the tenancy law"}
+{"id": "w12", "question": "How many days of annual leave am I entitled to?", "answerable": false, "must_contain": null, "note": "labour law, not this document"}
