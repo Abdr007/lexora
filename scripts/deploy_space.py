@@ -93,30 +93,45 @@ def explain_push_failure(stderr: str) -> str:
     return "push failed. The remote's reason is above."
 
 
+#: Never pushed to the Space. Screenshots are PNGs, and the Hub refuses binary files
+#: anywhere in a pushed history — not merely in the tip commit.
+SPACE_EXCLUDE: Final = ("docs",)
+
+
 def push_with_space_config(branch: str) -> subprocess.CompletedProcess[str]:
-    """Push to the Space with its configuration prepended to README.md.
+    """Push the deployable tree to the Space as a single synthetic commit.
 
-    The Hub reads a Space's configuration from README.md front matter, and GitHub renders
-    that same front matter as a table above the project's own title — a block of
-    deployment plumbing where the first line of the project should be. Keeping it in
-    .hf-space.yml and prepending it here gives each host what it needs.
+    A Space is a deployment target, not a mirror of this project's history, and treating
+    it as a mirror caused two separate failures. The Hub scans the whole history of a
+    pushed ref for binary files, so a PNG committed weeks ago rejects today's push; and
+    it reads a Space's configuration from README.md front matter, which GitHub renders as
+    a table above the project's own title.
 
-    The commit this makes exists only on the Space. It is dropped locally straight after,
-    whether or not the push succeeded, so the branch pushed to GitHub never carries it.
+    An orphan commit answers both. It carries the current tree minus `SPACE_EXCLUDE`,
+    with the configuration from `.hf-space.yml` prepended to the README — no history to
+    scan, and nothing on the GitHub branch changes. The branch is deleted afterwards
+    whatever happens, so a failed push cannot leave the repository on it.
     """
     readme = REPO_ROOT / "README.md"
     original = readme.read_text(encoding="utf-8")
     config = (REPO_ROOT / SPACE_CONFIG).read_text(encoding="utf-8").strip()
-    readme.write_text(f"---\n{config}\n---\n\n{original}", encoding="utf-8")
+    temp = "lexora-space-deploy"
 
-    run("git", "add", "README.md")
-    run("git", "commit", "-m", "Space configuration (generated from .hf-space.yml)")
+    run("git", "branch", "-D", temp, check=False)
+    run("git", "checkout", "--orphan", temp)
     try:
-        return run("git", "push", "--force", "space", f"{branch}:main", check=False)
+        for excluded in SPACE_EXCLUDE:
+            run("git", "rm", "-r", "--cached", "--ignore-unmatch", excluded, check=False)
+        readme.write_text(f"---\n{config}\n---\n\n{original}", encoding="utf-8")
+        run("git", "add", "-A")
+        for excluded in SPACE_EXCLUDE:
+            run("git", "reset", "-q", "--", excluded, check=False)
+        run("git", "commit", "-q", "-m", "Lexora — deployed tree")
+        return run("git", "push", "--force", "space", f"{temp}:main", check=False)
     finally:
-        # --hard is safe here: the only thing it can discard is the commit made above,
-        # and the tree was already clean when this function was called.
-        run("git", "reset", "--hard", "HEAD~1", check=False)
+        readme.write_text(original, encoding="utf-8")
+        run("git", "checkout", "-f", branch, check=False)
+        run("git", "branch", "-D", temp, check=False)
 
 
 def preflight() -> list[str]:
