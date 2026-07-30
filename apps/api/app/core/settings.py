@@ -155,6 +155,28 @@ class Settings(BaseSettings):
     max_history_turns: int = 6
     request_timeout_s: float = 30.0
 
+    # ── workspace (bring your own document) ──────────────────────────────────
+    # Uploaded documents are session-scoped and never written to disk, so every limit
+    # here is also a memory limit: the ceiling is roughly
+    # `workspace_max_sessions * workspace_max_docs * workspace_max_bytes` held at once,
+    # and the container has already been measured against a 1 GB budget (AUDIT.md §6.4).
+    workspace_max_bytes: int = 20_000_000
+    workspace_max_pages: int = 200
+    workspace_max_docs: int = 8
+    workspace_max_sessions: int = 200
+    # Idle sessions are purged on the next request rather than by a background task: a
+    # sweeper thread would need its own lifecycle, and traffic is the only thing that
+    # creates sessions in the first place.
+    workspace_session_ttl_s: float = 3600.0
+    workspace_fetch_timeout_s: float = 20.0
+    workspace_max_redirects: int = 5
+    # An uploaded document has no calibrated floor. The law corpus's -3.6 was fitted
+    # against 61 labelled questions about *that* corpus and does not transfer, so the
+    # workspace uses a deliberately permissive floor and the UI says the number is not
+    # calibrated. Refusing confidently on an un-evaluated corpus would be the same
+    # overclaim the project exists to avoid.
+    workspace_refusal_score_floor: float = -8.0
+
     @field_validator("temperature")
     @classmethod
     def _temperature_must_be_zero_for_factual_qa(cls, v: float) -> float:

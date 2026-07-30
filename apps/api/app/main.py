@@ -35,7 +35,7 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 import anyio
-from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from slowapi import Limiter
@@ -51,6 +51,8 @@ from app.api.schemas import (
     answer_view,
     chunk_view,
 )
+from app.api.workspace_routes import router as workspace_router
+from app.api.workspace_routes import vectors_for as workspace_vectors
 from app.core import claude, observability
 from app.core.models import RetrievalSource, ScoredChunk, Turn
 from app.core.settings import Settings, get_settings
@@ -154,14 +156,18 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 app.state.limiter = limiter
+app.include_router(workspace_router)
 
 _settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_settings.cors_origins,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    # X-Lexora-Session carries the workspace session id. It must be allowed on the way in
+    # and exposed on the way out, or the browser hides it from the client that needs it.
+    allow_headers=["Content-Type", "X-Lexora-Session"],
+    expose_headers=["X-Lexora-Session"],
     max_age=600,
 )
 
@@ -171,8 +177,18 @@ async def security_and_limits(
     request: Request, call_next: Callable[[Request], Awaitable[Response]]
 ) -> Response:
     """Reject oversized bodies, stamp a request id, and add security headers."""
+    # A question is never 64 KB, so the cap is deliberately tight — but a PDF is, and this
+    # middleware runs before routing, so without an exemption every upload would 413 here
+    # rather than reaching the endpoint that knows the real limit. The upload path is not
+    # unbounded: it enforces `workspace_max_bytes` while reading, and reads one byte past
+    # it precisely so it can tell "at the limit" from "over" it.
+    cap = (
+        _settings.workspace_max_bytes
+        if request.url.path.startswith("/api/workspace/")
+        else MAX_BODY_BYTES
+    )
     length = request.headers.get("content-length")
-    if length is not None and length.isdigit() and int(length) > MAX_BODY_BYTES:
+    if length is not None and length.isdigit() and int(length) > cap:
         return JSONResponse(
             status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             content={"detail": "Request body too large."},
@@ -240,6 +256,54 @@ def require_pipeline() -> Pipeline:
             detail=f"Index not ready. {state.detail}".strip(),
         )
     return state.pipeline
+
+
+def resolve_pipeline(body: AskBody, session_id: str | None, corpus: Pipeline) -> Pipeline:
+    """Pick the corpus pipeline or build a workspace one over this session's documents.
+
+    Three things differ for a workspace, and all three are corrections rather than
+    conveniences:
+
+    * the retriever holds the session's chunks, so a stranger's upload can never enter the
+      evaluated collection, nor collide on embedded Qdrant's single writer lock;
+    * the jurisdiction check is off — it encodes which legislatures the *corpus* covers,
+      and would refuse a question about the user's own Saudi contract;
+    * the refusal floor is the permissive workspace one, because the corpus's -3.6 was
+      fitted against 61 labelled questions about the corpus and does not transfer.
+    """
+    if body.scope != "workspace":
+        return corpus
+
+    from app.workspace.retriever import WorkspaceRetriever
+    from app.workspace.store import get_store
+
+    settings = get_settings()
+    session = get_store(settings).get(session_id)
+    if session is None or not session.documents:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No documents in this workspace yet. Add one, then ask.",
+        )
+
+    doc_ids = list(session.documents)
+    chunks = [chunk for doc_id in doc_ids for chunk in session.documents[doc_id].chunks]
+    vectors = workspace_vectors(doc_ids)
+    if vectors.shape[0] != len(chunks):
+        # Vectors and chunks are written together and removed together; a mismatch means
+        # a bug, and answering from a misaligned index would attribute text to the wrong
+        # passage on every citation.
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="workspace index is inconsistent; remove the document and add it again",
+        )
+
+    return Pipeline(
+        settings=settings.model_copy(
+            update={"refusal_score_floor": settings.workspace_refusal_score_floor}
+        ),
+        retriever=WorkspaceRetriever.build(chunks, vectors, settings),  # type: ignore[arg-type]
+        scope_check=None,
+    )
 
 
 # ── read endpoints ───────────────────────────────────────────────────────────
@@ -334,10 +398,12 @@ async def ask(
     request: Request,
     body: AskBody,
     pipeline: Pipeline = Depends(require_pipeline),
+    x_lexora_session: str | None = Header(default=None),
 ) -> AnswerView:
     """Answer without streaming. Used by the eval harness and by API consumers."""
     del request
     settings = get_settings()
+    pipeline = resolve_pipeline(body, x_lexora_session, pipeline)
     result = await anyio.to_thread.run_sync(
         lambda: pipeline.run(
             body.question,

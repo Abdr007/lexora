@@ -426,8 +426,9 @@ order does too. Measured against the real corpus, versus the default batch:
 | 16 | 2.126e-04 |
 | 32 | 1.063e-04 |
 
-Small, and not nothing: §5 calibrates a cosine refusal floor, so a borderline passage can
-cross it. Any host that rebuilt the collection was serving a near-copy of the evaluated
+Small, and not nothing. The vectors are what the reranker is handed, and §5 calibrates the
+refusal floor on the reranker's score, so a perturbation upstream of it can move a
+borderline passage across a fitted threshold. Any host that rebuilt the collection was serving a near-copy of the evaluated
 index. The committed vectors match every point `make index` built at **delta 0.0**, so
 the deployed collection is now the evaluated collection rather than a reconstruction of it.
 

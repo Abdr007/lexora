@@ -23,9 +23,11 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# curl is used only by HEALTHCHECK below.
+# curl is used only by HEALTHCHECK below. tesseract is the offline OCR path for scanned
+# uploads: Claude's vision model is better and is preferred when a key is present, but a
+# demo without a key still has to read a photograph of a contract rather than refuse it.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl \
+ && apt-get install -y --no-install-recommends curl tesseract-ocr tesseract-ocr-eng \
  && rm -rf /var/lib/apt/lists/*
 
 # Dependencies first so a code change does not invalidate the wheel layer.

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Generator, Sequence
+from collections.abc import Callable, Generator, Sequence
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -39,10 +39,14 @@ from app.guard.gate import run_gate
 from app.rag.generate import REFUSAL_TEXT, looks_like_refusal, stream_answer
 from app.rag.rerank import apply_refusal_gate, passthrough, rerank
 from app.rag.retrieve import HybridRetriever
-from app.rag.scope import check_scope
+from app.rag.scope import ScopeVerdict, check_scope
 from app.rag.verify import verify_answer
 
 logger = logging.getLogger(__name__)
+
+#: A jurisdiction check: question -> verdict, or None when the question is in scope.
+#: Injectable so a workspace can run without one — see Pipeline.__init__.
+ScopeCheck = Callable[[str], ScopeVerdict | None]
 
 
 @dataclass(slots=True)
@@ -82,9 +86,16 @@ class Pipeline:
         self,
         settings: Settings | None = None,
         retriever: HybridRetriever | None = None,
+        scope_check: ScopeCheck | None = check_scope,
     ) -> None:
         self.settings = settings or get_settings()
         self.retriever = retriever or HybridRetriever.load(self.settings)
+        # Injectable, and `None` disables it. The jurisdiction check encodes which
+        # legislatures *this corpus* covers; applied to a document the user uploaded
+        # themselves it would refuse a question about their own Saudi contract on the
+        # grounds that Saudi law is out of scope. That is right for the corpus and
+        # nonsense for a workspace.
+        self.scope_check = scope_check
 
     # ── the streaming path used by the API ───────────────────────────────
     def run_stream(
@@ -163,7 +174,7 @@ class Pipeline:
                 top,
                 cfg,
                 best_dense=retrieval.best_dense,
-                scope=check_scope(gate.search_query),
+                scope=self.scope_check(gate.search_query) if self.scope_check else None,
             )
             yield PipelineEvent(
                 "retrieval",

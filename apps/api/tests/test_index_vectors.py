@@ -9,10 +9,11 @@ real 181 chunks, versus the default batch:
     batch_size=16   max abs delta 2.126e-04
     batch_size=32   max abs delta 1.063e-04
 
-That is small, and it is not nothing — the refusal gate is a calibrated cosine floor, so
-a borderline passage can cross it. Shipping the vectors means the deployed collection is
-the one the evaluation scored rather than a near-copy, and it keeps the ONNX session out
-of the image build entirely (AUDIT.md §6.5).
+That is small, and it is not nothing. These vectors decide which passages the reranker is
+handed, and the refusal floor is a fitted threshold on the reranker's score — so a
+perturbation here can move a borderline passage across it. Shipping the vectors means the
+deployed collection is the one the evaluation scored rather than a near-copy, and it keeps
+the ONNX session out of the image build entirely (AUDIT.md §6.5).
 """
 
 from __future__ import annotations

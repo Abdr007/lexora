@@ -115,6 +115,9 @@ module = [
   "langfuse.*",
   "slowapi.*",
   "fitz",
+  "pytesseract",
+  "docx",
+  "docx.*",
   # Optional heavyweight reranker backend, imported lazily and never installed by default.
   "sentence_transformers.*",
 ]

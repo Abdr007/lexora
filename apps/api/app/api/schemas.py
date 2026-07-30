@@ -135,6 +135,14 @@ class AskBody(Wire):
         description="Restrict retrieval to one instrument, e.g. 'dubai-tenancy-law'.",
     )
     rerank: bool = True
+    scope: Literal["law", "workspace"] = Field(
+        default="law",
+        description=(
+            "'law' searches the pinned, evaluated corpus. 'workspace' searches only the "
+            "documents uploaded in this session, and its answers are NOT calibrated: the "
+            "refusal floor was fitted against the corpus and does not transfer."
+        ),
+    )
 
     @model_validator(mode="after")
     def _question_is_not_blank(self) -> Self:

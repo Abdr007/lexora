@@ -115,6 +115,11 @@ class Chunk(Frozen):
     page_end: int = Field(ge=1)
     text: str
     token_count: int = Field(ge=1)
+    # What `article_no` counts. Legislation has articles; an uploaded contract has
+    # sections, and calling them articles would be a small lie repeated on every citation
+    # chip. Defaulted so the committed corpus deserialises unchanged and `make_id` — which
+    # never saw this field — keeps producing the same ids.
+    unit_label: str = "Article"
 
     @property
     def citation_key(self) -> str:
@@ -122,11 +127,11 @@ class Chunk(Frozen):
 
     @property
     def display_citation(self) -> str:
-        return f"[{self.law_label}, Article {self.article_no}]"
+        return f"[{self.law_label}, {self.unit_label} {self.article_no}]"
 
     @property
     def heading(self) -> str:
-        base = f"{self.law_label} — Article {self.article_no}"
+        base = f"{self.law_label} — {self.unit_label} {self.article_no}"
         if self.article_title:
             base = f"{base}: {self.article_title}"
         if self.seq_total > 1:
@@ -206,9 +211,20 @@ class GateResult(Frozen):
 # Tolerates "Art." / "Art" / "Article", an optional "(n)", and stray inner spacing,
 # because a verifier that only recognises the perfectly-formatted case is a verifier
 # that silently passes malformed citations.
+#
+# The unit is an alternation rather than the literal "Article" because an uploaded
+# document has sections or pages, not articles (see `Chunk.unit_label`). Matching only
+# "Article" did not fail loudly on a workspace citation — it matched nothing, so every
+# citation was dropped and the answer rendered as though the model had cited nothing.
+# Longest alternatives come first: "Sec" before "Section" would match the prefix and
+# leave "tion" to break the rest of the pattern.
+#
+# Digits and underscores are permitted in the label because the label is a filename for
+# an uploaded document, and `contract_2024.pdf` is an ordinary name.
 CITATION_RE = re.compile(
-    r"\[\s*(?P<law>[A-Za-z][A-Za-z .'\-]{1,48}?)\s*,\s*"
-    r"(?:Article|Art\.?)\s*\(?\s*(?P<article>\d{1,3})\s*\)?\s*\]",
+    r"\[\s*(?P<law>[A-Za-z0-9][A-Za-z0-9 ._'\-]{1,60}?)\s*,\s*"
+    r"(?P<unit>Article|Art\.?|Section|Sec\.?|Clause|Paragraph|Para\.?|Page)"
+    r"\s*\(?\s*(?P<article>\d{1,4})\s*\)?\s*\]",
     re.IGNORECASE,
 )
 
