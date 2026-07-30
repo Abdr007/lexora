@@ -10,6 +10,29 @@ that knows when it should not answer**, and can show you why.
 
 ## Before you present — 60 seconds
 
+**Presenting remotely, or sending a link?** Use the deployment. Nothing needs to run on
+your machine.
+
+```bash
+make verify-hosted    # checks the live stack AND warms it
+```
+
+Must end with `all 7 checks passed · the Space is warm · ready to present`. Run it a
+minute or two before the call, not the night before: the API sleeps after 48 hours idle
+and takes ~30 s to wake, and this is what pays that cost instead of your first question
+doing it in front of someone.
+
+| | |
+|---|---|
+| UI | <https://uselexora.vercel.app> |
+| API | <https://Abdr007-lexora.hf.space> |
+
+It checks the two things that fail *silently* on a hosted deploy — a UI redirecting
+visitors to a login page, and a CSP that blocks every call from inside the browser.
+Neither appears in the API logs, because in both cases no request ever reaches the API.
+
+**Presenting from your laptop** — offline, or on a network you don't trust:
+
 ```bash
 make dev      # API on :7862, web on :3020
 make demo     # drives all 8 states through the real API
@@ -18,7 +41,7 @@ make demo     # drives all 8 states through the real API
 `make demo` must end with `all 8 states correct · ready to present`. If it does not,
 do not present — it names the state that broke.
 
-Open <http://localhost:3020>. Check the header badge:
+Open <http://localhost:3020> (or the hosted UI above). Check the header badge:
 
 | Badge | Meaning |
 |---|---|
@@ -163,6 +186,16 @@ Answer honestly and specifically:
 | A refusal came back as an answer | Threshold drift | `make eval` and check the gate. Don't improvise an explanation |
 | Browser shows nothing | Web on the wrong API origin | `NEXT_PUBLIC_API_URL` must match `LEXORA_API_PORT` (7862) |
 | `429 Too Many Requests` | Rate limiter, 30/min/IP | Wait a minute, or raise `LEXORA_RATE_LIMIT`. 30/min covers a full demo plus a re-run of `make demo` |
+
+Hosted only:
+
+| Symptom | Cause | Fix on the spot |
+|---|---|---|
+| First question takes ~30 s | The Space was asleep (48 h idle) | Expected, and it is warm afterwards. `make verify-hosted` exists so this never happens live |
+| Link sends the viewer to a Vercel login | Deployment protection re-enabled | Project → Settings → Deployment Protection → disable Vercel Authentication. Caught by `make verify-hosted` |
+| UI loads but every question hangs | CSP `connect-src` pinned to localhost — `NEXT_PUBLIC_API_URL` was missing at **build** time | Set it, then redeploy. Nothing appears in the API logs because no request leaves the browser |
+| UI loads, questions fail with a CORS error | The UI origin is not on `LEXORA_CORS_ALLOW_ORIGINS` | Space → Settings → Variables. See AUDIT.md §6.6 for what that setting does and does not enforce here |
+| Space shows a build error | Usually the bake step's memory | AUDIT.md §6.5. `scripts/check_bake_budget.py` gates this in CI, so it should not reach a deploy |
 
 Never explain a result you did not expect. Say "that's not what it does normally, let me
 show you the eval" and go to the numbers — they're reproducible and the improvised
