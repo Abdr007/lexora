@@ -23,7 +23,7 @@ rejected, that is recorded too: an audit that only lists successes is a brochure
 | d | Paraphrased question returns a cited answer; the chip opens the right article | **PASS** | §4 |
 | e | A trap question triggers the refusal card | **PASS** | §4, §7 |
 | f | `ragas_run.py` completes and `/metrics` renders it | **PASS** | §5, §8 |
-| g | README with mermaid architecture, local run, free deploy steps, Terraform | **PASS** | README |
+| g | README with mermaid architecture, local run and real deploy steps | **PASS** | README |
 
 ---
 
@@ -48,7 +48,6 @@ two copies that drift.
 | Web types | `tsc --noEmit` | **clean** |
 | Web lint | `eslint . --max-warnings 0` | **clean** |
 | Web build | `next build` | **compiled successfully, 5/5 pages** |
-| Terraform | `fmt -check` + `validate` | **configuration is valid** |
 | Container | `docker build` + boot until healthy | **`status: ok` on linux/amd64** |
 | Retrieval quality | `scripts/quality_gate.py` | **all 5 floors cleared** |
 
@@ -138,7 +137,6 @@ Recorded because they are the reason the checks above exist.
 | **Reranker tokenizer missed on a cold cache** | `get_reranker_tokenizer()` globs the model cache, so on a cold cache it ran *before* anything had downloaded the reranker, found nothing, and `lru_cache` memoised the miss for the process lifetime. Truncation stayed silently disabled, passages exceeded the model window, the runtime truncated per batch — and a score began depending on which documents shared its batch, **up to 4.3 apart**. Every cold container was affected | Load the encoder before searching for its tokenizer; never cache a miss. Test now asserts its own precondition |
 | `httpx2>=0.1,<2.0` matched no release | The package publishes `<0.1` then `>=2.0`. Passed locally only because it was installed before the constraint was written, so it never re-resolved | Corrected to `>=2.9,<3.0` |
 | ruff resolved `tests` as first-party locally, third-party on CI | Import-order failure that could not be reproduced on a developer machine | `known-first-party = ["app", "tests"]` |
-| Terraform `for_each = [1]` | A list of number is not an iterable collection in current Terraform | `toset([...])` |
 | Eval scripts assumed `PYTHONPATH` contained the repo root | `ModuleNotFoundError: eval` on any runner that did not set it | Each script puts both paths on `sys.path` itself |
 | **Contents page numbers leaked into article titles** | `PAGE_FURNITURE_RE` drops a bare page number but not a *range*, so the Labour Law's `Article (58-64) \| Penalties \| 39-40` contents row indexed seven articles under the title **"Penalties 39-40"**. Nothing downstream would have rejected it — a plausible string that rode into the chunk text and therefore into the BM25 index. Found by reading a rendered answer, not by a test | Contents rows now drop a trailing page cell, and a range welded onto the title is stripped only when something with letters survives. All 7 read "Penalties"; a test asserts no article title anywhere contains a digit |
 | **`dev.sh` identified its own processes by command line** | Two projects on this machine run `python -m uvicorn app.main:app --port N`, so the pattern matched a *neighbouring project's* API. `status` reported that neighbour as "Lexora, up" while Lexora was not running at all, `start` saw the busy port and skipped starting, and `stop` would have sent SIGTERM to the other project. Only the working directory distinguishes them | Every lookup now resolves the pid listening on the port and requires its `cwd` to be inside this repo; `start` names the foreign owner and refuses rather than assuming success. Port moved to 7862, since 7860 *and* 7861 were taken |
@@ -331,7 +329,7 @@ overrides — text invisible to a human reviewer but fully visible to the model.
 | Deserialisation | BM25 persisted as JSON, never pickle | `sparse.py` |
 | Corpus transport | https-only, PDF magic-byte check, digest pin | `corpus/download.py` |
 | Privilege | Container runs as uid 1000, not root | `Dockerfile` |
-| Secrets | Never logged; Terraform puts the key in Secret Manager | `infra/terraform/main.tf` |
+| Secrets | Never logged. The key is a Space variable, injected at runtime and absent from the image, the repository and every build log | `docs/DEPLOY.md` |
 
 ### 6.3 Concurrency
 

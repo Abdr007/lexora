@@ -26,7 +26,7 @@ export PYTHONPATH := apps/api
 .DEFAULT_GOAL := help
 .PHONY: help setup setup-api setup-web corpus index reindex warm dev api web stop status \
         demo verify-hosted eval-workspace check ci ci-cold lint typecheck test fmt web-check \
-        terraform-check eval eval-judge \
+        eval eval-judge \
         calibrate chunking questions docker-build docker-run clean
 
 help:
@@ -84,7 +84,7 @@ verify-hosted: ## pre-flight the DEPLOYED stack, and warm it (run this before pr
 	$(PY) scripts/verify_hosted.py
 
 # ── quality gates ────────────────────────────────────────────────────────────
-check: lint typecheck test web-check terraform-check ## every gate, fast (uses the existing venv)
+check: lint typecheck test web-check ## every gate, fast (uses the existing venv)
 	@echo ""
 	@echo "  all gates passed"
 
@@ -104,7 +104,6 @@ ci: ## reproduce CI locally in a clean-room venv (slow, but catches what `check`
 	@/tmp/lexora-ci-venv/bin/ruff format --check .
 	@/tmp/lexora-ci-venv/bin/mypy
 	@/tmp/lexora-ci-venv/bin/python -m pytest -q
-	@$(MAKE) --no-print-directory terraform-check
 	@echo "── retrieval quality gate (same thresholds as CI) ───────────────"
 	@/tmp/lexora-ci-venv/bin/python eval/build_questions.py >/dev/null
 	@/tmp/lexora-ci-venv/bin/python eval/ragas_run.py >/dev/null
@@ -118,11 +117,6 @@ ci: ## reproduce CI locally in a clean-room venv (slow, but catches what `check`
 ci-cold: ## like `ci`, but with an empty ONNX model cache
 	rm -rf var/models
 	$(MAKE) ci
-
-terraform-check: ## fmt + validate the Cloud Run module (no cloud credentials needed)
-	terraform fmt -check -recursive infra/terraform
-	terraform -chdir=infra/terraform init -backend=false -input=false >/dev/null
-	terraform -chdir=infra/terraform validate -no-color
 
 lint: ## ruff, zero warnings
 	apps/api/.venv/bin/ruff check .

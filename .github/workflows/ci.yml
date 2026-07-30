@@ -133,26 +133,3 @@ jobs:
             sleep 5
           done
           echo "container did not become healthy"; docker logs lexora; exit 1
-
-  terraform:
-    name: Terraform — format and validate
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v7
-      - uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: "1.9.8"
-
-      - name: Format check
-        run: terraform fmt -check -recursive infra/terraform
-
-      # `init -backend=false` and `validate` need no cloud credentials and no billing
-      # account, so the module is proven syntactically and semantically correct on every
-      # push. That is the difference between "there is a .tf file in the repo" and
-      # "the infrastructure definition is verified by CI".
-      - name: Init (no backend)
-        run: terraform -chdir=infra/terraform init -backend=false
-
-      - name: Validate
-        run: terraform -chdir=infra/terraform validate -no-color

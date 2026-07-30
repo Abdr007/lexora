@@ -35,7 +35,7 @@ The API is a separate deployment on Hugging Face Spaces —
 [`/api/health`](https://Abdr007-lexora.hf.space/api/health) ·
 [`/api/laws`](https://Abdr007-lexora.hf.space/api/laws) — because the UI is static and the
 API needs a container with 1 GB and two ONNX sessions. The image honours `$PORT`, so the
-same container runs on Cloud Run unchanged.
+the image is not tied to this host.
 
 > The API sleeps after 48 hours idle and takes ~30 s to wake; the first question of the
 > day is slow and the rest are not.
@@ -214,7 +214,7 @@ vercel --prod --yes
 Then allow the UI's origin on the API — Space → Settings → Variables →
 `LEXORA_CORS_ALLOW_ORIGINS=https://uselexora.vercel.app`. Full walkthrough, including
 what each host does and does not enforce, in
-[infra/DEPLOY-SPACES.md](infra/DEPLOY-SPACES.md).
+[docs/DEPLOY.md](docs/DEPLOY.md).
 
 **`NEXT_PUBLIC_API_URL` must exist before the first build.** `next.config.ts` derives the
 CSP's `connect-src` from it at *build* time. Deploy without it and the shipped policy pins
@@ -240,21 +240,6 @@ and malloc-trim tuning do not close the gap ([AUDIT.md §6.4](AUDIT.md)).
 That ruled out every 512 MB free tier, Render's included, and is why this runs on a paid
 Space rather than a free host.
 
-### Cloud Run, if you would rather not pay for a Space
-
-`infra/terraform/` provisions the same image on GCP Cloud Run — the service, a dedicated
-service account, and the Anthropic key in Secret Manager, with the three knobs
-(`min_instances`, `memory`, `max_instances`) that decide whether it stays inside the
-always-free allowance. It is validated in CI on every push (`terraform fmt` + `validate`)
-but **is not what is running today**, so treat it as a working alternative rather than a
-documented one — `terraform apply -var project_id=... -var image=...` after pushing the
-image to Artifact Registry.
-
-The image is identical either way: the entrypoint honours `$PORT` when one is injected and
-falls back to 7860. One genuine difference, worth knowing before you choose — the CORS
-allowlist is enforced on Cloud Run and **is not** on Spaces, which attaches its own
-permissive headers at the edge ([AUDIT.md §6.6](AUDIT.md)).
-
 ### Qdrant and Langfuse
 
 Both optional. Unset, Qdrant runs embedded on disk with no account and no credentials.
@@ -279,8 +264,8 @@ lexora/
   eval/                questions.jsonl · ragas_run.py · workspace_run.py · chunking
   scripts/             deploy · bake · hosted verification · demo pre-flight
   docs/screens/        README screenshots (excluded from the image)
-  Dockerfile           API image — HF Spaces today, Cloud Run unchanged
-  infra/               terraform/ (Cloud Run) · DEPLOY-SPACES.md
+  Dockerfile           API image — honours $PORT, so it is not host-specific
+  docs/DEPLOY.md       how the Space and Vercel are actually deployed
   AUDIT.md             every check, every measurement, every accepted residual
 ```
 
