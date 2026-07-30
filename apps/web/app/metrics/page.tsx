@@ -115,7 +115,7 @@ export default function MetricsPage() {
         <Notice tone="muted">Loading…</Notice>
       ) : !data.available ? (
         <Notice tone="ochre">
-          {data.detail ?? "No evaluation recorded yet."} Run <Code>make eval</Code> to produce
+          {data.detail ?? "No evaluation has been recorded yet."} Run <Code>make eval</Code> to produce
           <Code>eval/results/latest.json</Code>.
         </Notice>
       ) : (

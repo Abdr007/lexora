@@ -7,6 +7,7 @@ import { AnswerText } from "@/components/AnswerText";
 import { Composer } from "@/components/Composer";
 import { Dropzone } from "@/components/Dropzone";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SpectrumField, type FieldState } from "@/components/SpectrumField";
 import { EvidencePanel } from "@/components/EvidencePanel";
 import { ProvenanceRail, type RailState, emptyRail } from "@/components/ProvenanceRail";
 import { describeKind, getWorkspace, readSession, type Workspace } from "@/lib/workspace";
@@ -227,6 +228,17 @@ export default function Page() {
     if (requested === "workspace" || requested === "law") setMode(requested);
   }, []);
 
+  const fieldState: FieldState = useMemo(() => {
+    const last = exchanges[exchanges.length - 1];
+    if (!last) return "idle";
+    if (last.answer === null && last.error === null) return "searching";
+    if (last.answer?.kind === "refusal") return "refused";
+    if (last.answer?.kind === "blocked") return "blocked";
+    return last.answer ? "answered" : "idle";
+  }, [exchanges]);
+
+  const lastRetrieval = exchanges[exchanges.length - 1]?.rail.retrieval;
+
   const stop = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
@@ -280,7 +292,14 @@ export default function Page() {
               <Dropzone workspace={workspace} onChange={setWorkspace} />
             </div>
           ) : exchanges.length === 0 ? (
-            <Opening laws={laws} onPick={(text) => void send(text)} />
+            <Opening
+              laws={laws}
+              onPick={(text) => void send(text)}
+              chunkCount={health?.chunks_indexed ?? 181}
+              fieldState={fieldState}
+              lastRetrieval={lastRetrieval}
+              verifiedCount={exchanges[exchanges.length - 1]?.rail.verified ?? 0}
+            />
           ) : null}
 
           <div className="space-y-10">
@@ -414,16 +433,39 @@ function WorkspaceOpening() {
   );
 }
 
-function Opening({ laws, onPick }: { laws: LawView[]; onPick: (text: string) => void }) {
+function Opening({
+  laws,
+  onPick,
+  chunkCount,
+  fieldState,
+  lastRetrieval,
+  verifiedCount,
+}: {
+  laws: LawView[];
+  onPick: (text: string) => void;
+  chunkCount: number;
+  fieldState: FieldState;
+  lastRetrieval?: { candidates: number } | null;
+  verifiedCount: number;
+}) {
   return (
     <section className="cut-in-slow pb-10">
       <h1 className="display max-w-[16ch] text-[clamp(2.4rem,7vw,4.8rem)] text-ink">
         Answers with the clause attached.
       </h1>
-      <div className="threshold draw-rule my-6 w-full" />
-      <p className="display max-w-[18ch] text-[clamp(1.4rem,3.6vw,2.3rem)] text-ink-soft">
+      <p className="display mt-2 max-w-[18ch] text-[clamp(1.4rem,3.6vw,2.3rem)] text-ink-soft">
         Or no answer at all.
       </p>
+      {/* The corpus, drawn. This is the hero: a question lights the passages the
+          retrievers found and pushes the best above the threshold, and a refusal is the
+          picture of nothing crossing it. */}
+      <SpectrumField
+        className="my-8"
+        count={chunkCount}
+        state={fieldState}
+        retrieved={lastRetrieval?.candidates ?? 0}
+        kept={verifiedCount}
+      />
 
       <p className="statute mt-7 max-w-[58ch] text-ink-soft">
         Ask about working in the UAE or renting in Dubai. Every answer quotes the article it

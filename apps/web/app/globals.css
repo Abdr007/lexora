@@ -216,6 +216,24 @@ body {
     0 0 28px -6px rgb(251 191 36 / 0.5);
 }
 
+/* A slow wave travelling along the corpus field. Each bar carries a delay proportional
+   to its index, so the brightening crosses the field instead of blinking together. It is
+   the only thing that moves while the page is idle, and it moves because the field is the
+   subject: a corpus waiting to be searched. */
+.shimmer {
+  animation: shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.75);
+  }
+}
+
 /* Pulse is reserved for "the system is deciding". It never runs idle, because a
    thing that always pulses stops meaning anything. */
 .pulse {
@@ -504,7 +522,8 @@ body {
     transition-duration: 0.01ms !important;
   }
 
-  .paper-tooth::before {
+  .paper-tooth::before,
+  .shimmer {
     animation: none;
   }
 

@@ -37,6 +37,10 @@ RUN pip install --upgrade pip && pip install /app/apps/api
 COPY apps/api/app /app/apps/api/app
 COPY corpus/sources.json corpus/manifest.json /app/corpus/
 COPY var/index /app/var/index
+# The recorded evaluation. Committed to the repo but, until now, never copied into the
+# image — so /api/metrics found nothing and the "How well it works" page, the one an
+# interviewer clicks first, rendered an empty state on every deploy.
+COPY eval/results /app/eval/results
 
 ENV PYTHONPATH=/app/apps/api
 
