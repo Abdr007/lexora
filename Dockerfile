@@ -48,16 +48,19 @@ ENV PYTHONPATH=/app/apps/api
 #
 # Doing it here moves that work to build time, where it is allowed to be slow. Startup
 # then only opens an already-populated store.
-RUN python -c "\
-from app.core.embedding import embed_query; \
-from app.rag.rerank import get_cross_encoder; \
-from app.rag.index import ensure_vector_store; \
-from app.core.vectorstore import close_client; \
-embed_query('warm up the session'); \
-get_cross_encoder(); \
-n = ensure_vector_store(); \
-close_client(); \
-print(f'baked: models cached, {n} vector points')"
+#
+# THREE layers, not one. A single process doing all three was OOM-killed by the Hugging
+# Face build container (exit 137) with both ONNX sessions and all 181 vectors resident
+# at once. The build container's ceiling is lower than the runtime's, so fitting in 1 GB
+# at runtime — AUDIT.md §6.4 — does not imply the image can be built. Each stage exits
+# before the next starts, so the kernel reclaims it and peak RSS is the largest stage
+# rather than the sum. The artefacts are on disk, so splitting the process does not
+# split the result. Each stage prints its peak RSS; see scripts/bake.py.
+COPY scripts/bake.py /app/scripts/bake.py
+
+RUN python scripts/bake.py embedding
+RUN python scripts/bake.py reranker
+RUN python scripts/bake.py vectorstore
 
 # Run as a non-root user. Spaces and Cloud Run both allow it, and there is no
 # reason for an inference service to be root.

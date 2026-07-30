@@ -43,6 +43,26 @@ def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
     )
 
 
+def frontmatter_problems(frontmatter: str) -> list[str]:
+    """Check the Spaces configuration block. Pure, so it is testable without a repo."""
+    problems: list[str] = []
+    if "sdk: docker" not in frontmatter:
+        problems.append("README.md frontmatter does not declare `sdk: docker`")
+
+    for line in frontmatter.splitlines():
+        if not line.startswith("short_description:"):
+            continue
+        # Split once only: quoting is optional in YAML, and a description containing a
+        # colon needs the quotes — splitting on every colon would truncate at the first.
+        described = line.split(":", 1)[1].strip().strip("\"'")
+        if len(described) > SHORT_DESCRIPTION_MAX:
+            problems.append(
+                f"short_description is {len(described)} characters; the Hub rejects "
+                f"anything over {SHORT_DESCRIPTION_MAX}. Shorten it in README.md."
+            )
+    return problems
+
+
 def preflight() -> list[str]:
     problems: list[str] = []
     for relative in REQUIRED:
@@ -54,20 +74,7 @@ def preflight() -> list[str]:
         problems.append("README.md has no Spaces YAML frontmatter (sdk: docker)")
         return problems
 
-    frontmatter = readme.split("---")[1]
-    if "sdk: docker" not in frontmatter:
-        problems.append("README.md frontmatter does not declare `sdk: docker`")
-
-    for line in frontmatter.splitlines():
-        if not line.startswith("short_description:"):
-            continue
-        # Quoting is optional in YAML, and a description containing a colon needs it.
-        described = line.split(":", 1)[1].strip().strip("\"'")
-        if len(described) > SHORT_DESCRIPTION_MAX:
-            problems.append(
-                f"short_description is {len(described)} characters; the Hub rejects "
-                f"anything over {SHORT_DESCRIPTION_MAX}. Shorten it in README.md."
-            )
+    problems.extend(frontmatter_problems(readme.split("---")[1]))
     return problems
 
 
