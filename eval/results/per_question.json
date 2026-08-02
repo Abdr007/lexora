@@ -8,7 +8,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 239.5
+      "latency_ms": 106.4
     },
     {
       "id": "a002",
@@ -18,7 +18,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 10.1
+      "latency_ms": 5.2
     },
     {
       "id": "a003",
@@ -28,7 +28,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 12.1
+      "latency_ms": 5.5
     },
     {
       "id": "a004",
@@ -38,7 +38,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 11.0
+      "latency_ms": 3.9
     },
     {
       "id": "a005",
@@ -48,7 +48,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 16.3
+      "latency_ms": 5.1
     },
     {
       "id": "a006",
@@ -58,7 +58,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 10.9
+      "latency_ms": 4.8
     },
     {
       "id": "a007",
@@ -68,7 +68,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 29.0
+      "latency_ms": 4.7
     },
     {
       "id": "a008",
@@ -78,7 +78,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 13.2
+      "latency_ms": 4.8
     },
     {
       "id": "a009",
@@ -88,7 +88,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 8.1
+      "latency_ms": 4.5
     },
     {
       "id": "a010",
@@ -98,7 +98,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 10.0
+      "latency_ms": 5.3
     },
     {
       "id": "a011",
@@ -108,7 +108,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 7.7
+      "latency_ms": 4.7
     },
     {
       "id": "a012",
@@ -118,7 +118,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.3
+      "latency_ms": 4.2
     },
     {
       "id": "a013",
@@ -128,7 +128,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.8
+      "latency_ms": 5.1
     },
     {
       "id": "a014",
@@ -138,7 +138,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.0
+      "latency_ms": 4.7
     },
     {
       "id": "a015",
@@ -148,7 +148,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 16.0
+      "latency_ms": 5.1
     },
     {
       "id": "a016",
@@ -158,7 +158,7 @@
       "gold_rank": 3,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.3
+      "latency_ms": 4.3
     },
     {
       "id": "a017",
@@ -168,7 +168,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 14.8
+      "latency_ms": 5.1
     },
     {
       "id": "a018",
@@ -178,7 +178,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 10.7
+      "latency_ms": 5.1
     },
     {
       "id": "a019",
@@ -188,7 +188,7 @@
       "gold_rank": 3,
       "refused": false,
       "best_score": null,
-      "latency_ms": 12.4
+      "latency_ms": 5.1
     },
     {
       "id": "a020",
@@ -198,7 +198,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 12.9
+      "latency_ms": 4.7
     },
     {
       "id": "a021",
@@ -208,7 +208,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": null,
-      "latency_ms": 11.0
+      "latency_ms": 4.7
     },
     {
       "id": "a022",
@@ -218,7 +218,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 6.4
+      "latency_ms": 4.1
     },
     {
       "id": "a023",
@@ -228,7 +228,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 10.8
+      "latency_ms": 5.0
     },
     {
       "id": "a024",
@@ -238,7 +238,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.2
+      "latency_ms": 4.5
     },
     {
       "id": "a025",
@@ -248,7 +248,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 10.5
+      "latency_ms": 4.7
     },
     {
       "id": "a026",
@@ -258,7 +258,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 8.2
+      "latency_ms": 4.9
     },
     {
       "id": "a027",
@@ -268,7 +268,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 6.6
+      "latency_ms": 4.2
     },
     {
       "id": "a028",
@@ -278,7 +278,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.2
+      "latency_ms": 4.5
     },
     {
       "id": "a029",
@@ -288,7 +288,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 11.1
+      "latency_ms": 6.0
     },
     {
       "id": "a030",
@@ -298,7 +298,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 11.4
+      "latency_ms": 4.9
     },
     {
       "id": "a031",
@@ -308,7 +308,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.5
+      "latency_ms": 4.7
     },
     {
       "id": "a032",
@@ -318,7 +318,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.4
+      "latency_ms": 4.7
     },
     {
       "id": "a033",
@@ -328,7 +328,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 11.1
+      "latency_ms": 5.4
     },
     {
       "id": "a034",
@@ -338,7 +338,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 10.0
+      "latency_ms": 4.7
     },
     {
       "id": "a035",
@@ -348,7 +348,7 @@
       "gold_rank": 4,
       "refused": false,
       "best_score": null,
-      "latency_ms": 10.3
+      "latency_ms": 4.3
     },
     {
       "id": "a036",
@@ -358,7 +358,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 14.8
+      "latency_ms": 5.1
     },
     {
       "id": "a037",
@@ -368,7 +368,7 @@
       "gold_rank": 5,
       "refused": false,
       "best_score": null,
-      "latency_ms": 14.7
+      "latency_ms": 4.6
     },
     {
       "id": "a038",
@@ -378,7 +378,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": null,
-      "latency_ms": 17.9
+      "latency_ms": 5.4
     },
     {
       "id": "a039",
@@ -388,7 +388,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 16.5
+      "latency_ms": 5.2
     },
     {
       "id": "a040",
@@ -398,7 +398,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": null,
-      "latency_ms": 12.2
+      "latency_ms": 5.1
     },
     {
       "id": "a041",
@@ -408,7 +408,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 15.9
+      "latency_ms": 5.2
     },
     {
       "id": "a042",
@@ -418,7 +418,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.4
+      "latency_ms": 4.8
     },
     {
       "id": "a043",
@@ -428,7 +428,7 @@
       "gold_rank": 4,
       "refused": false,
       "best_score": null,
-      "latency_ms": 7.6
+      "latency_ms": 5.4
     },
     {
       "id": "a044",
@@ -438,7 +438,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.1
+      "latency_ms": 5.7
     },
     {
       "id": "a045",
@@ -448,7 +448,7 @@
       "gold_rank": 3,
       "refused": false,
       "best_score": null,
-      "latency_ms": 10.5
+      "latency_ms": 5.1
     },
     {
       "id": "a046",
@@ -458,7 +458,7 @@
       "gold_rank": 3,
       "refused": false,
       "best_score": null,
-      "latency_ms": 19.5
+      "latency_ms": 4.8
     },
     {
       "id": "t001",
@@ -468,7 +468,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": null,
-      "latency_ms": 10.0
+      "latency_ms": 5.5
     },
     {
       "id": "t002",
@@ -478,7 +478,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": null,
-      "latency_ms": 11.6
+      "latency_ms": 7.8
     },
     {
       "id": "t003",
@@ -488,7 +488,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 11.9
+      "latency_ms": 5.6
     },
     {
       "id": "t004",
@@ -498,7 +498,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 11.6
+      "latency_ms": 4.9
     },
     {
       "id": "t005",
@@ -508,7 +508,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 8.0
+      "latency_ms": 4.9
     },
     {
       "id": "t006",
@@ -518,7 +518,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": null,
-      "latency_ms": 9.4
+      "latency_ms": 9.9
     },
     {
       "id": "t007",
@@ -528,7 +528,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 8.2
+      "latency_ms": 6.0
     },
     {
       "id": "t008",
@@ -538,7 +538,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.7
+      "latency_ms": 6.4
     },
     {
       "id": "t009",
@@ -548,7 +548,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 13.2
+      "latency_ms": 5.1
     },
     {
       "id": "t010",
@@ -558,7 +558,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 8.2
+      "latency_ms": 4.5
     },
     {
       "id": "t011",
@@ -568,7 +568,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 9.9
+      "latency_ms": 4.9
     },
     {
       "id": "t012",
@@ -578,7 +578,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": null,
-      "latency_ms": 7.9
+      "latency_ms": 5.6
     },
     {
       "id": "t013",
@@ -588,7 +588,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 8.7
+      "latency_ms": 4.6
     },
     {
       "id": "t014",
@@ -598,7 +598,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": null,
-      "latency_ms": 8.4
+      "latency_ms": 4.8
     },
     {
       "id": "t015",
@@ -608,7 +608,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": null,
-      "latency_ms": 7.8
+      "latency_ms": 4.4
     }
   ],
   "with_rerank": [
@@ -620,7 +620,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 2.896,
-      "latency_ms": 917.5
+      "latency_ms": 552.9
     },
     {
       "id": "a002",
@@ -630,7 +630,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 1.935,
-      "latency_ms": 984.1
+      "latency_ms": 482.2
     },
     {
       "id": "a003",
@@ -640,7 +640,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 8.175,
-      "latency_ms": 898.9
+      "latency_ms": 422.8
     },
     {
       "id": "a004",
@@ -650,7 +650,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 2.404,
-      "latency_ms": 720.3
+      "latency_ms": 412.9
     },
     {
       "id": "a005",
@@ -660,7 +660,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 9.31,
-      "latency_ms": 668.5
+      "latency_ms": 375.4
     },
     {
       "id": "a006",
@@ -670,7 +670,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 3.385,
-      "latency_ms": 656.8
+      "latency_ms": 375.8
     },
     {
       "id": "a007",
@@ -680,7 +680,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 6.382,
-      "latency_ms": 1063.1
+      "latency_ms": 432.4
     },
     {
       "id": "a008",
@@ -690,7 +690,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": 8.473,
-      "latency_ms": 1250.2
+      "latency_ms": 457.1
     },
     {
       "id": "a009",
@@ -700,7 +700,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 7.962,
-      "latency_ms": 1117.6
+      "latency_ms": 404.3
     },
     {
       "id": "a010",
@@ -710,7 +710,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 4.64,
-      "latency_ms": 933.6
+      "latency_ms": 410.9
     },
     {
       "id": "a011",
@@ -720,7 +720,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 6.373,
-      "latency_ms": 956.8
+      "latency_ms": 487.8
     },
     {
       "id": "a012",
@@ -730,7 +730,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": -1.184,
-      "latency_ms": 1077.5
+      "latency_ms": 556.6
     },
     {
       "id": "a013",
@@ -740,7 +740,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 7.311,
-      "latency_ms": 720.0
+      "latency_ms": 370.4
     },
     {
       "id": "a014",
@@ -750,7 +750,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 7.301,
-      "latency_ms": 711.4
+      "latency_ms": 363.9
     },
     {
       "id": "a015",
@@ -760,7 +760,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 5.2,
-      "latency_ms": 752.4
+      "latency_ms": 447.0
     },
     {
       "id": "a016",
@@ -770,7 +770,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 7.05,
-      "latency_ms": 698.6
+      "latency_ms": 433.7
     },
     {
       "id": "a017",
@@ -780,7 +780,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 8.695,
-      "latency_ms": 955.2
+      "latency_ms": 475.0
     },
     {
       "id": "a018",
@@ -790,7 +790,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 5.723,
-      "latency_ms": 630.7
+      "latency_ms": 389.2
     },
     {
       "id": "a019",
@@ -800,7 +800,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 5.433,
-      "latency_ms": 781.7
+      "latency_ms": 439.9
     },
     {
       "id": "a020",
@@ -810,7 +810,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": 0.389,
-      "latency_ms": 703.6
+      "latency_ms": 383.8
     },
     {
       "id": "a021",
@@ -820,7 +820,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 1.308,
-      "latency_ms": 771.4
+      "latency_ms": 485.0
     },
     {
       "id": "a022",
@@ -830,7 +830,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 8.628,
-      "latency_ms": 546.8
+      "latency_ms": 413.1
     },
     {
       "id": "a023",
@@ -840,7 +840,7 @@
       "gold_rank": 5,
       "refused": false,
       "best_score": 4.686,
-      "latency_ms": 640.8
+      "latency_ms": 541.7
     },
     {
       "id": "a024",
@@ -850,7 +850,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": -0.895,
-      "latency_ms": 782.7
+      "latency_ms": 718.6
     },
     {
       "id": "a025",
@@ -860,7 +860,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 5.82,
-      "latency_ms": 810.0
+      "latency_ms": 505.9
     },
     {
       "id": "a026",
@@ -870,7 +870,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 2.841,
-      "latency_ms": 760.7
+      "latency_ms": 510.7
     },
     {
       "id": "a027",
@@ -880,7 +880,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 2.256,
-      "latency_ms": 1069.9
+      "latency_ms": 565.6
     },
     {
       "id": "a028",
@@ -890,7 +890,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 6.122,
-      "latency_ms": 1546.9
+      "latency_ms": 498.1
     },
     {
       "id": "a029",
@@ -900,7 +900,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 9.241,
-      "latency_ms": 1197.4
+      "latency_ms": 374.2
     },
     {
       "id": "a030",
@@ -910,7 +910,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": -0.584,
-      "latency_ms": 1764.9
+      "latency_ms": 467.1
     },
     {
       "id": "a031",
@@ -920,7 +920,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 5.533,
-      "latency_ms": 1065.1
+      "latency_ms": 478.6
     },
     {
       "id": "a032",
@@ -930,7 +930,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 5.151,
-      "latency_ms": 900.5
+      "latency_ms": 423.0
     },
     {
       "id": "a033",
@@ -940,7 +940,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 5.015,
-      "latency_ms": 789.6
+      "latency_ms": 386.4
     },
     {
       "id": "a034",
@@ -950,7 +950,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": 3.768,
-      "latency_ms": 831.1
+      "latency_ms": 444.8
     },
     {
       "id": "a035",
@@ -960,7 +960,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": -0.222,
-      "latency_ms": 876.4
+      "latency_ms": 535.6
     },
     {
       "id": "a036",
@@ -970,7 +970,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 7.79,
-      "latency_ms": 835.3
+      "latency_ms": 480.6
     },
     {
       "id": "a037",
@@ -980,7 +980,7 @@
       "gold_rank": 5,
       "refused": false,
       "best_score": 1.942,
-      "latency_ms": 634.8
+      "latency_ms": 340.5
     },
     {
       "id": "a038",
@@ -990,7 +990,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": 6.018,
-      "latency_ms": 582.9
+      "latency_ms": 331.4
     },
     {
       "id": "a039",
@@ -1000,7 +1000,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": -3.574,
-      "latency_ms": 569.7
+      "latency_ms": 278.5
     },
     {
       "id": "a040",
@@ -1010,7 +1010,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 4.721,
-      "latency_ms": 537.3
+      "latency_ms": 275.9
     },
     {
       "id": "a041",
@@ -1020,7 +1020,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 0.846,
-      "latency_ms": 528.3
+      "latency_ms": 315.1
     },
     {
       "id": "a042",
@@ -1030,7 +1030,7 @@
       "gold_rank": 5,
       "refused": false,
       "best_score": 2.79,
-      "latency_ms": 532.3
+      "latency_ms": 319.7
     },
     {
       "id": "a043",
@@ -1040,7 +1040,7 @@
       "gold_rank": 5,
       "refused": false,
       "best_score": -0.667,
-      "latency_ms": 612.0
+      "latency_ms": 354.4
     },
     {
       "id": "a044",
@@ -1050,7 +1050,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": 2.992,
-      "latency_ms": 601.9
+      "latency_ms": 346.8
     },
     {
       "id": "a045",
@@ -1060,7 +1060,7 @@
       "gold_rank": 1,
       "refused": false,
       "best_score": 1.886,
-      "latency_ms": 476.3
+      "latency_ms": 281.5
     },
     {
       "id": "a046",
@@ -1070,7 +1070,7 @@
       "gold_rank": 2,
       "refused": false,
       "best_score": 2.38,
-      "latency_ms": 472.9
+      "latency_ms": 275.7
     },
     {
       "id": "t001",
@@ -1080,7 +1080,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -10.946,
-      "latency_ms": 824.2
+      "latency_ms": 541.8
     },
     {
       "id": "t002",
@@ -1090,7 +1090,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -9.595,
-      "latency_ms": 804.1
+      "latency_ms": 569.9
     },
     {
       "id": "t003",
@@ -1100,7 +1100,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -6.091,
-      "latency_ms": 777.2
+      "latency_ms": 491.3
     },
     {
       "id": "t004",
@@ -1110,7 +1110,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": 3.294,
-      "latency_ms": 577.5
+      "latency_ms": 360.1
     },
     {
       "id": "t005",
@@ -1120,7 +1120,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -5.643,
-      "latency_ms": 573.6
+      "latency_ms": 373.6
     },
     {
       "id": "t006",
@@ -1130,7 +1130,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": 2.113,
-      "latency_ms": 897.8
+      "latency_ms": 603.1
     },
     {
       "id": "t007",
@@ -1140,7 +1140,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -5.416,
-      "latency_ms": 539.4
+      "latency_ms": 388.3
     },
     {
       "id": "t008",
@@ -1150,7 +1150,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": -1.089,
-      "latency_ms": 690.9
+      "latency_ms": 462.1
     },
     {
       "id": "t009",
@@ -1160,7 +1160,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -5.059,
-      "latency_ms": 797.5
+      "latency_ms": 527.9
     },
     {
       "id": "t010",
@@ -1170,7 +1170,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -6.011,
-      "latency_ms": 668.8
+      "latency_ms": 480.9
     },
     {
       "id": "t011",
@@ -1180,7 +1180,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -5.49,
-      "latency_ms": 857.7
+      "latency_ms": 614.9
     },
     {
       "id": "t012",
@@ -1190,7 +1190,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": 2.105,
-      "latency_ms": 864.9
+      "latency_ms": 650.1
     },
     {
       "id": "t013",
@@ -1200,7 +1200,7 @@
       "gold_rank": null,
       "refused": false,
       "best_score": -2.3,
-      "latency_ms": 635.4
+      "latency_ms": 515.5
     },
     {
       "id": "t014",
@@ -1210,7 +1210,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -10.227,
-      "latency_ms": 1054.6
+      "latency_ms": 720.1
     },
     {
       "id": "t015",
@@ -1220,7 +1220,7 @@
       "gold_rank": null,
       "refused": true,
       "best_score": -6.135,
-      "latency_ms": 712.9
+      "latency_ms": 507.3
     }
   ]
 }

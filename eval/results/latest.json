@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-29T22:29:41+00:00",
-  "engine": "offline-extractive",
-  "judge_model": null,
+  "generated_at": "2026-08-02T16:08:34+00:00",
+  "engine": "anthropic",
+  "judge_model": "claude-sonnet-4-6",
   "reranker": "Xenova/ms-marco-MiniLM-L-6-v2",
   "embedding_model": "BAAI/bge-small-en-v1.5",
   "dataset": {
@@ -35,20 +35,20 @@
       "missed_refusals": 3,
       "answerable": 46,
       "traps": 15,
-      "faithfulness": null,
-      "answer_relevancy": null
+      "faithfulness": 0.9898,
+      "answer_relevancy": 0.7742
     }
   },
   "latency_ms": {
     "no_rerank": {
-      "p50_ms": 10.3,
-      "p95_ms": 17.9,
-      "max_ms": 239.5
+      "p50_ms": 4.9,
+      "p95_ms": 6.4,
+      "max_ms": 106.4
     },
     "with_rerank": {
-      "p50_ms": 777.2,
-      "p95_ms": 1197.4,
-      "max_ms": 1764.9
+      "p50_ms": 444.8,
+      "p95_ms": 614.9,
+      "max_ms": 720.1
     }
   },
   "refusal_calibration": {

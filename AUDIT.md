@@ -7,9 +7,10 @@ rejected, that is recorded too: an audit that only lists successes is a brochure
 - **Commit scope:** full repository at v1.0.0
 - **Hardware for all timings:** Apple Silicon, 8 logical cores, CPU only — no GPU
   anywhere in this project
-- **Engine for all numbers below:** `offline-extractive` (no `ANTHROPIC_API_KEY` was
-  available at audit time). Metrics that require a language model are marked
-  **pending key** and are *not* estimated.
+- **Engine for all numbers below:** retrieval metrics are engine-independent and were
+  measured under `offline-extractive`. The judged metrics (faithfulness, answer
+  relevance) were measured on 2026-08-02 under `engine=anthropic` with
+  `claude-sonnet-4-6` as both answerer and judge. Nothing here is estimated.
 
 ---
 
@@ -188,8 +189,8 @@ Same index, same questions; the only difference is the cross-encoder.
 | context recall | 0.9130 | 0.9348 | +0.0218 |
 | **refusal accuracy** | 0.3333 | **0.8000** | **+0.4667** |
 | false refusals | 0 | **0** | 0 |
-| faithfulness | pending key | pending key | — |
-| answer relevance | pending key | pending key | — |
+| faithfulness | not measured | **0.9898** | — |
+| answer relevance | not measured | 0.7742 | — |
 
 The headline is the last row but one. **Reranking is what makes refusal possible at
 all**: RRF scores do not separate in-corpus from out-of-corpus questions, so without the
@@ -651,8 +652,9 @@ into the image and warmed at startup rather than on the first user's question.
 
 Renders `eval/results/latest.json` directly. Nothing is hardcoded; with no recorded run
 it says so rather than showing a plausible zero, and judged metrics render as
-**"pending key"** rather than 0.0 — an absent measurement and a bad measurement must
-never look alike.
+`null` rather than 0.0 — an absent measurement and a bad measurement must
+never look alike. The judged metrics are populated as of 2026-08-02; the `no_rerank`
+column stays empty because the judge was run only against the shipped configuration.
 
 ---
 
@@ -660,12 +662,17 @@ never look alike.
 
 Open items, with reasons. None is a defect in shipped behaviour.
 
-1. **Refusal accuracy 0.80 offline, target ≥0.90.** The three surviving traps are
-   near-domain and require generation-time refusal (§5.3). Re-measure with
-   `make eval-judge` once the key is available. This is the one Definition-of-Done
-   metric not yet at target, and it is stated rather than rounded up.
-2. **Faithfulness and answer relevance are unmeasured.** Both require a judge model.
-   Implemented and wired (`eval/judge.py`), reported as pending.
+1. **Refusal accuracy 0.80, target ≥0.90.** Re-measured on 2026-08-02 under
+   `engine=anthropic` (`make eval-judge`): unchanged at 0.80, with 0 false refusals.
+   The three surviving traps are near-domain and require generation-time refusal
+   (§5.3), so a live answerer did not move the number. This is the one
+   Definition-of-Done metric not at target, and it is stated rather than rounded up.
+2. **Answer relevance is 0.7742.** Measured 2026-08-02 (`make eval-judge`, 46
+   answerable questions, `claude-sonnet-4-6` as judge). Faithfulness is 0.9898 — the
+   answers are strongly grounded in the retrieved passages. The lower relevance score
+   is the expected cost of a prompt that forbids going beyond the passages: an answer
+   that correctly declines to elaborate scores as less "relevant" to the question as
+   asked. Not tuned away, because the alternative is a less grounded answer.
 3. **`ragas` is not used as a library.** Version 0.4.3 fails at import against current
    `langchain-community` (`ModuleNotFoundError: langchain_community.chat_models.vertexai`).
    Pinning the LangChain stack back far enough would drag a large conflicting tree into a

@@ -201,9 +201,12 @@ Answer honestly and specifically:
   measured and rejected, both because they bought refusal accuracy with false refusals —
   and withholding a correct answer is the worse error here. That trade is documented in
   AUDIT.md §5.3 rather than tuned away.
-- Faithfulness and answer relevance are judged by an LLM and are **pending an API key**.
-  They're reported as `None`, never as `0.0` — an absent measurement and a bad one must
-  not look alike.
+- Faithfulness is **0.9898** and answer relevance **0.7742**, judged by
+  `claude-sonnet-4-6` over the 46 answerable questions. The gap between them is the
+  point: the prompt forbids going beyond the retrieved passages, so an answer that
+  declines to elaborate is maximally faithful and scores lower on relevance. Before the
+  judge ran, both were reported as `None` and never as `0.0` — an absent measurement and
+  a bad one must not look alike.
 - The corpus is four instruments. Scaling to a few hundred changes the retrieval story:
   BM25 in-process stops being reasonable, and the jurisdiction check needs to become
   data rather than closed lists.
