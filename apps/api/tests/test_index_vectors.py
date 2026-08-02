@@ -100,3 +100,39 @@ class TestCommittedArtefact:
         assert vectors is not None
         norms = np.linalg.norm(np.asarray(vectors, dtype=np.float32), axis=1)
         assert np.allclose(norms, 1.0, atol=1e-3), f"norms range {norms.min()}–{norms.max()}"
+
+
+class TestEmbedDocumentsOrdering:
+    """Length-sorted batching must not permute results.
+
+    `embed_documents` sorts by length so a batch is uniform and padding is not computed
+    and discarded (2.96s -> 0.67s on a 46-chunk document). The caller pairs vectors with
+    chunks *positionally*, so a permuted return would attribute every passage to the
+    wrong text -- silently, and with citations that look perfectly well-formed.
+    """
+
+    def test_vectors_come_back_in_input_order(self, settings: Settings):
+        from app.core.embedding import embed_documents
+
+        # Deliberately lumpy, so sorting genuinely reorders them.
+        texts = [
+            "annual leave entitlement " * 60,
+            "short",
+            "probation period rules " * 20,
+            "tiny",
+            "termination and notice " * 40,
+        ]
+        vectors = embed_documents(texts, settings)
+        assert len(vectors) == len(texts)
+
+        # Each vector must match the one produced for its own text alone.
+        for text, vector in zip(texts, vectors, strict=True):
+            alone = embed_documents([text], settings)[0]
+            similarity = sum(a * b for a, b in zip(vector, alone, strict=True))
+            norm = (sum(a * a for a in vector) ** 0.5) * (sum(b * b for b in alone) ** 0.5)
+            assert similarity / norm > 0.999, "a vector was paired with the wrong text"
+
+    def test_empty_input_is_handled(self, settings: Settings):
+        from app.core.embedding import embed_documents
+
+        assert embed_documents([], settings) == []
