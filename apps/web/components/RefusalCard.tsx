@@ -17,12 +17,14 @@ import type { ChunkView } from "@/lib/api";
  * candidate was measured against a fixed floor, and by exactly how much it fell short.
  */
 export function RefusalCard({
+  scope,
   text,
   nearMisses,
   floor,
   bestScore,
   onOpen,
 }: {
+  scope: "law" | "workspace";
   text: string;
   nearMisses: ChunkView[];
   floor: number | null;
@@ -33,7 +35,11 @@ export function RefusalCard({
 
   return (
     <section className="cut-in border-l-2 border-ochre bg-ochre-wash/60 pl-5 pr-4 py-4">
-      <p className="marginal mb-2 text-ochre">Not covered by the indexed corpus</p>
+      <p className="marginal mb-2 text-ochre">
+        {scope === "workspace"
+          ? "Not covered by your documents"
+          : "Not covered by the indexed corpus"}
+      </p>
 
       <p className="statute max-w-[62ch] text-ink">{lead}</p>
       {rest.map((paragraph, index) => (

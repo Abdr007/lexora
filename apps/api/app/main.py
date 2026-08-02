@@ -261,7 +261,7 @@ def require_pipeline() -> Pipeline:
 def resolve_pipeline(body: AskBody, session_id: str | None, corpus: Pipeline) -> Pipeline:
     """Pick the corpus pipeline or build a workspace one over this session's documents.
 
-    Three things differ for a workspace, and all three are corrections rather than
+    Four things differ for a workspace, and all four are corrections rather than
     conveniences:
 
     * the retriever holds the session's chunks, so a stranger's upload can never enter the
@@ -269,7 +269,11 @@ def resolve_pipeline(body: AskBody, session_id: str | None, corpus: Pipeline) ->
     * the jurisdiction check is off — it encodes which legislatures the *corpus* covers,
       and would refuse a question about the user's own Saudi contract;
     * the refusal floor is the permissive workspace one, because the corpus's -3.6 was
-      fitted against 61 labelled questions about the corpus and does not transfer.
+      fitted against 61 labelled questions about the corpus and does not transfer;
+    * the source profile names the user's own upload rather than the law corpus, in both
+      the answer system prompt and the refusal copy. Naming the corpus there told the
+      user something false about their own document, and told Claude it was reading UAE
+      statute when it was reading their contract.
     """
     if body.scope != "workspace":
         return corpus
@@ -299,7 +303,10 @@ def resolve_pipeline(body: AskBody, session_id: str | None, corpus: Pipeline) ->
 
     return Pipeline(
         settings=settings.model_copy(
-            update={"refusal_score_floor": settings.workspace_refusal_score_floor}
+            update={
+                "refusal_score_floor": settings.workspace_refusal_score_floor,
+                "source_profile": "workspace",
+            }
         ),
         retriever=WorkspaceRetriever.build(chunks, vectors, settings),  # type: ignore[arg-type]
         scope_check=None,

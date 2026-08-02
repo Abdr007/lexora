@@ -129,8 +129,8 @@ fmt: ## apply ruff formatting
 typecheck: ## mypy --strict
 	apps/api/.venv/bin/mypy
 
-test: ## pytest, warnings are errors
-	$(PY) -m pytest
+test: ## pytest, warnings are errors (always offline: the suite must not spend tokens)
+	LEXORA_LLM_MODE=offline $(PY) -m pytest
 
 web-check: ## tsc, eslint and a production build
 	cd apps/web && npx tsc --noEmit && npx eslint . --max-warnings 0 && npm run build

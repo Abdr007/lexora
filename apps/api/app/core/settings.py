@@ -135,6 +135,13 @@ class Settings(BaseSettings):
     guard_model: str = "claude-haiku-4-5-20251001"
     answer_max_tokens: int = 1200
     guard_max_tokens: int = 400
+    # Which body of text this pipeline is reading: "corpus" or "workspace". It selects
+    # the SourceProfile in rag/generate.py, which names the source in both the answer
+    # system prompt and the refusal copy. Overridden per-request in resolve_pipeline
+    # alongside refusal_score_floor -- a workspace holds the user's own upload, and
+    # telling them it answers "only from the UAE Federal Labour Law" is a false claim
+    # about their document.
+    source_profile: str = "corpus"
     # Factual QA over statutes: never sample.
     temperature: float = 0.0
     llm_timeout_s: float = 60.0
@@ -176,6 +183,21 @@ class Settings(BaseSettings):
     # calibrated. Refusing confidently on an un-evaluated corpus would be the same
     # overclaim the project exists to avoid.
     workspace_refusal_score_floor: float = -8.0
+
+    @field_validator("source_profile")
+    @classmethod
+    def _source_profile_must_be_known(cls, v: str) -> str:
+        # Fail loudly rather than fall back. A typo here is invisible at runtime -- the
+        # pipeline would quietly describe a user's own upload as "the UAE Federal Labour
+        # Law", which is the exact false claim this field exists to prevent.
+        from app.rag.generate import SOURCE_PROFILE_NAMES
+
+        if v not in SOURCE_PROFILE_NAMES:
+            raise ValueError(
+                f"unknown source_profile {v!r}; expected one of "
+                f"{', '.join(sorted(SOURCE_PROFILE_NAMES))}"
+            )
+        return v
 
     @field_validator("temperature")
     @classmethod

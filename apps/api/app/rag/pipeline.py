@@ -36,7 +36,7 @@ from app.core.models import (
 from app.core.observability import trace_span
 from app.core.settings import Settings, get_settings
 from app.guard.gate import run_gate
-from app.rag.generate import REFUSAL_TEXT, looks_like_refusal, stream_answer
+from app.rag.generate import looks_like_refusal, refusal_text, stream_answer
 from app.rag.rerank import apply_refusal_gate, passthrough, rerank
 from app.rag.retrieve import HybridRetriever
 from app.rag.scope import ScopeVerdict, check_scope
@@ -194,17 +194,16 @@ class Pipeline:
             )
 
             if not outcome.covered:
-                refusal_text = (
-                    f"{REFUSAL_TEXT}\n\n{outcome.reason}" if outcome.reason else REFUSAL_TEXT
-                )
+                base = refusal_text(cfg)
+                refused = f"{base}\n\n{outcome.reason}" if outcome.reason else base
                 answer = Answer(
                     kind=AnswerKind.REFUSAL,
-                    text=refusal_text,
+                    text=refused,
                     near_misses=outcome.near_misses,
                     gate=gate,
                     engine=engine_name(cfg),
                 )
-                yield PipelineEvent("token", {"text": refusal_text})
+                yield PipelineEvent("token", {"text": refused})
                 yield PipelineEvent(
                     "final",
                     result=PipelineResult(

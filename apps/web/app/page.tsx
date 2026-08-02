@@ -29,6 +29,7 @@ import { cn } from "@/lib/cn";
 interface Exchange {
   id: string;
   question: string;
+  scope: "law" | "workspace";
   streamed: string;
   answer: AnswerView | null;
   rail: RailState;
@@ -117,7 +118,7 @@ export default function Page() {
       rail.active = "gate";
       setExchanges((current) => [
         ...current,
-        { id, question, streamed: "", answer: null, rail, error: null },
+        { id, question, scope: mode, streamed: "", answer: null, rail, error: null },
       ]);
       setDraft("");
       setBusy(true);
@@ -523,6 +524,7 @@ function ExchangeView({
         </div>
       ) : answer?.kind === "refusal" ? (
         <RefusalCard
+          scope={exchange.scope}
           text={answer.text}
           nearMisses={answer.near_misses}
           floor={exchange.rail.retrieval?.floor ?? null}
