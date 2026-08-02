@@ -432,8 +432,17 @@ async def ask_stream(
     request: Request,
     body: AskBody,
     pipeline: Pipeline = Depends(require_pipeline),
+    x_lexora_session: str | None = Header(default=None),
 ) -> StreamingResponse:
     """Stream the answer as Server-Sent Events.
+
+    ``resolve_pipeline`` is as load-bearing here as it is on ``/api/ask``, and for a long
+    time this endpoint did not call it. The browser is the *only* caller that streams, and
+    the browser is the only caller that has a workspace, so `scope: "workspace"` and the
+    session header arrived correctly and were then dropped on the floor: every question
+    about an uploaded document was answered from the law corpus instead. A refusal made
+    that visible, but a question whose wording happened to match a statute got a confident,
+    correctly-cited answer from a document the user had never uploaded.
 
     The pipeline is a synchronous, CPU-bound generator (ONNX inference holds the GIL only
     in short bursts but still blocks). Each step is therefore advanced on a worker thread
@@ -446,6 +455,7 @@ async def ask_stream(
     """
     del request
     settings = get_settings()
+    pipeline = resolve_pipeline(body, x_lexora_session, pipeline)
     turns = _to_turns(body, settings)
     events = pipeline.run_stream(body.question, turns, validated_law_id(body.law_id), body.rerank)
     done = object()

@@ -203,3 +203,75 @@ class TestStream:
                     elif name == "final":
                         final = payload
         assert streamed == final["text"]
+
+
+class TestWorkspaceScopeReachesBothEndpoints:
+    """A workspace question must never be answered from the law corpus.
+
+    `/api/ask/stream` did not call `resolve_pipeline` for a long time. The browser is the
+    only caller that streams and the only caller that has a workspace, so `scope` and the
+    session header arrived correctly and were dropped: every question about an uploaded
+    document was answered from UAE statute instead. A refusal exposed it; a question whose
+    wording happened to match a statute would have returned a confident, correctly-cited
+    answer from a document the user never uploaded.
+
+    These assert the two endpoints agree, because the defect was them drifting apart.
+    """
+
+    TEXT = (
+        "Section 1. Rest and Leisure\n"
+        "Every worker at Contoso is entitled to fourteen days of paid rest each year, "
+        "and to a quiet room on the third floor during working hours.\n\n"
+        "Section 2. Equipment\n"
+        "Contoso issues each worker a laptop and a chair.\n"
+    )
+
+    def _session_with_a_document(self, client: TestClient) -> str:
+        session = "pytest-scope-" + "a" * 24
+        response = client.post(
+            "/api/workspace/upload",
+            headers={"X-Lexora-Session": session},
+            files={"file": ("contoso_policy.txt", self.TEXT.encode(), "text/plain")},
+        )
+        assert response.status_code == 201, response.text
+        return session
+
+    @pytest.mark.parametrize("endpoint", ["/api/ask", "/api/ask/stream"])
+    def test_answer_comes_from_the_uploaded_document(
+        self, client: TestClient, endpoint: str
+    ) -> None:
+        session = self._session_with_a_document(client)
+        response = client.post(
+            endpoint,
+            headers={"X-Lexora-Session": session},
+            json={"question": "How many days of paid rest?", "scope": "workspace"},
+        )
+        assert response.status_code == 200, response.text
+        body = response.text
+
+        # The uploaded file is the only place "Contoso" appears; the corpus never says it.
+        assert "Contoso" in body or "contoso_policy" in body, (
+            f"{endpoint} did not search the uploaded document"
+        )
+        # Corpus instruments must not be cited for a workspace question.
+        for law in ("Labour Law", "Tenancy Law", "Tenancy Amendment", "Rent Decree"):
+            assert law not in body, f"{endpoint} answered a workspace question from {law}"
+
+    @pytest.mark.parametrize("endpoint", ["/api/ask", "/api/ask/stream"])
+    def test_workspace_refusal_never_claims_to_be_the_law_corpus(
+        self, client: TestClient, endpoint: str
+    ) -> None:
+        session = self._session_with_a_document(client)
+        response = client.post(
+            endpoint,
+            headers={"X-Lexora-Session": session},
+            json={
+                "question": "What is the corporate tax rate in Ireland?",
+                "scope": "workspace",
+            },
+        )
+        assert response.status_code == 200, response.text
+        body = response.text
+        assert "UAE Federal Labour Law" not in body, (
+            f"{endpoint} told the user their own document was the UAE labour law"
+        )
