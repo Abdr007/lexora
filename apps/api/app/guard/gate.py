@@ -272,7 +272,17 @@ def run_gate(
             logger.info("gate blocked a query: %s", ", ".join(signals))
             return result
 
-        if not is_online(cfg):
+        # A first question has no antecedent, so there is nothing for the model to
+        # rewrite: the gate call costs ~880ms and one Haiku request to hand back the
+        # question it was given. Skip it and search directly.
+        #
+        # This does NOT weaken the injection defence. `screen_deterministic` above has
+        # already run against the ORIGINAL text and is the layer that blocks; the model
+        # gate can only ever add blocks on top of it, and is reached for every question
+        # that carries history -- which is the case where a follow-up can smuggle in an
+        # instruction the first turn did not. What is skipped is a paraphrase step whose
+        # only input is a question we already have verbatim.
+        if not is_online(cfg) or not history:
             query = rewrite_deterministic(cleaned, history)
             result = GateResult(
                 decision=GateDecision.ALLOW,

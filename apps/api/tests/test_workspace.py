@@ -282,3 +282,61 @@ class TestCoverage:
         assert coverage(document, chunks) == 1.0
         joined = " ".join(chunk.text for chunk in chunks)
         assert "Interpretation" in joined
+
+
+class TestCitableNumbering:
+    """A citation must point at something the reader can find in their own document.
+
+    `article_no` used to be the reading-order index, so the UDHR -- 30 printed articles,
+    36+ detected headings -- put the text of Article 24 under number 35. The model read
+    "Article 24" from the passage body and cited it correctly; no chunk carried 24, so
+    the verifier marked a correct citation unsupported and the UI flagged it red.
+    """
+
+    def _doc(self, text: str):
+        from app.workspace.extract import ExtractedDocument, ExtractedPage
+
+        return ExtractedDocument(
+            title="sample.pdf",
+            source="sample.pdf",
+            kind="pdf",
+            pages=(ExtractedPage(page_no=1, text=text),),
+        )
+
+    def test_printed_number_wins_over_reading_order(self, settings: Settings):
+        text = (
+            "PREAMBLE\nWhereas recognition of the inherent dignity of all members.\n\n"
+            "WHEREAS DISREGARD\nBarbarous acts have outraged the conscience of mankind.\n\n"
+            "Article 24\nEveryone has the right to rest and leisure, including reasonable "
+            "limitation of working hours and periodic holidays with pay.\n"
+        )
+        chunks = chunk_document(self._doc(text), "doc-x", settings)
+        rest = [c for c in chunks if "rest and leisure" in c.text.lower()]
+        assert rest, "the article text was lost"
+        assert rest[0].article_no == 24, (
+            f"cited as {rest[0].article_no}; the document prints 'Article 24'"
+        )
+
+    def test_repeated_numbers_do_not_collide(self, settings: Settings):
+        """Two 'Article 1's must not resolve to the same citation."""
+        text = (
+            "Article 1\nThe first agreement covers the initial term of the lease.\n\n"
+            "Article 2\nThe second clause covers renewal and its associated notice.\n\n"
+            "Article 1\nAppendix restatement of the first article for reference only.\n"
+        )
+        chunks = chunk_document(self._doc(text), "doc-y", settings)
+        numbers = [c.article_no for c in chunks]
+        assert len(numbers) == len(set(numbers)), f"colliding article numbers: {numbers}"
+        # 2 is unique and printed, so it must survive as 2.
+        assert 2 in numbers
+
+    def test_unnumbered_sections_still_get_a_number(self, settings: Settings):
+        text = (
+            "INTRODUCTION\nThis policy sets out how the company handles annual leave.\n\n"
+            "Article 7\nEmployees accrue leave monthly across the whole calendar year.\n"
+        )
+        chunks = chunk_document(self._doc(text), "doc-z", settings)
+        numbers = [c.article_no for c in chunks]
+        assert all(n > 0 for n in numbers)
+        assert len(numbers) == len(set(numbers))
+        assert 7 in numbers, "a printed number was lost"
