@@ -88,14 +88,30 @@ That script is idempotent: it creates the Space if it does not exist, commits an
 outstanding work locally, adds the Space as a git remote, and pushes. Re-run it to
 redeploy.
 
-If you would rather do it by hand:
+If you would rather do it by hand, note that **`git push space HEAD:main` does not
+work** and is not merely inconvenient. The Hub refuses binary files anywhere in a
+pushed *history*, not just in the tip commit, so the screenshots committed to this
+repository weeks ago reject today's push. Once the Space has been deployed once, a
+plain push is also rejected as non-fast-forward, because what lives there is a single
+synthetic commit rather than this project's history.
+
+The script's equivalent is an orphan commit carrying the current tree minus `docs/`
+(`SPACE_EXCLUDE`), with `.hf-space.yml` prepended to the README as frontmatter:
 
 ```bash
 apps/api/.venv/bin/hf repo create lexora --repo-type space --space-sdk docker
 git remote add space https://huggingface.co/spaces/YOUR_USERNAME/lexora
-git add -A && git commit -m "Lexora v1.0.0"
-git push space HEAD:main
+git checkout --orphan space-deploy
+git rm -r --cached docs >/dev/null                # SPACE_EXCLUDE
+# then prepend .hf-space.yml to README.md — the Space reads its config from there
+git commit -q -m "Lexora — deployed tree"
+git push --force space space-deploy:main
+git checkout main && git branch -D space-deploy
 ```
+
+Prefer the script. It also verifies the required artefacts are present *before*
+pushing, so a missing index fails in a second rather than surfacing as a `degraded`
+Space ten minutes later.
 
 ---
 

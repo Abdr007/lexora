@@ -28,6 +28,7 @@ interface MetricSet {
 
 interface ChunkingRow {
   target_tokens: number;
+  encoder_window_enforced: boolean;
   chunks: number;
   tokens_mean: number;
   over_window: number;
@@ -259,9 +260,14 @@ function ChunkingChart({ rows }: { rows: ChunkingRow[] }) {
     <div className="border border-rule bg-sheet p-5">
       <ul className="space-y-4">
         {rows.map((row) => (
-          <li key={row.target_tokens}>
+          <li key={`${row.target_tokens}-${row.encoder_window_enforced}`}>
             <div className="instrument mb-1.5 flex items-baseline justify-between gap-3">
-              <span className="text-ink">{row.target_tokens} tokens</span>
+              <span className="text-ink">
+                {row.target_tokens} tokens{" "}
+                <span className="text-ink-faint">
+                  {row.encoder_window_enforced ? "· window enforced" : "· unenforced"}
+                </span>
+              </span>
               <span className="text-ink-faint">
                 {row.chunks} chunks · mean {Math.round(row.tokens_mean)} ·{" "}
                 <span className={row.over_window > 0 ? "text-ochre" : "text-indigo"}>
