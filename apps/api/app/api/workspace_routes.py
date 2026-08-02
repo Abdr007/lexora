@@ -20,6 +20,7 @@ here is deliberately permissive and the flag is what the UI reads to say so out 
 from __future__ import annotations
 
 import logging
+import time
 import uuid
 from typing import Annotated, Any
 
@@ -56,6 +57,22 @@ class DocumentView(BaseModel):
     coverage: float = 1.0
 
 
+class IngestTimings(BaseModel):
+    """Per-stage cost of accepting a document, in milliseconds.
+
+    `/api/ask` has reported its stage timings since the beginning; ingest reported
+    nothing, so its cost could only be profiled locally and extrapolated to the Space.
+    That extrapolation was wrong: embedding measured as ~80% of ingest on an 8-core
+    laptop, a 4.7x embedding speedup moved the hosted number by 17%, and the real
+    bottleneck was somewhere this endpoint never reported. Numbers, not inference.
+    """
+
+    extract_ms: float = 0.0
+    chunk_ms: float = 0.0
+    embed_ms: float = 0.0
+    total_ms: float = 0.0
+
+
 class WorkspaceView(BaseModel):
     session_id: str
     documents: list[DocumentView]
@@ -63,6 +80,8 @@ class WorkspaceView(BaseModel):
     #: False, always. Present so the UI cannot forget to say it.
     calibrated: bool = False
     limits: dict[str, int]
+    #: Populated on upload/link; absent when simply reading the workspace back.
+    timings: IngestTimings | None = None
 
 
 def _view(session: Any, settings: Settings) -> WorkspaceView:
@@ -98,22 +117,30 @@ def _ingest(
     session_id: str | None,
     store: SessionStore,
     settings: Settings,
-) -> tuple[Any, Any]:
+) -> tuple[Any, Any, IngestTimings]:
     """Chunk, embed and register a document. Runs off the event loop; embedding is CPU."""
     from app.core.embedding import embed_documents
 
     doc_id = f"doc-{uuid.uuid4().hex[:12]}"
+    started = time.perf_counter()
     chunks = chunk_document(document, doc_id, settings)
     if not chunks:
         raise WorkspaceFullError(f"no indexable text was found in {document.title}")
 
     kept = coverage(document, chunks)
+    chunked_at = time.perf_counter()
     vectors = embed_documents([chunk.text for chunk in chunks], settings)
+    embedded_at = time.perf_counter()
+
     session, entry = store.add(session_id, document, chunks, doc_id, kept)
     # The vectors live beside the chunks on the document entry so a query never re-embeds.
     entry_vectors = np.asarray(vectors, dtype=np.float32)
     _VECTORS[doc_id] = entry_vectors
-    return session, entry
+    timings = IngestTimings(
+        chunk_ms=(chunked_at - started) * 1000,
+        embed_ms=(embedded_at - chunked_at) * 1000,
+    )
+    return session, entry, timings
 
 
 # Vectors are kept out of the dataclass so the store stays a plain container and numpy
@@ -166,11 +193,19 @@ async def upload(
         )
 
     try:
+        started = time.perf_counter()
         document = await anyio.to_thread.run_sync(
             lambda: extract_bytes(data, file.filename or "document", file.content_type, settings)
         )
-        session, _ = await anyio.to_thread.run_sync(
+        extracted_at = time.perf_counter()
+        session, _, timings = await anyio.to_thread.run_sync(
             lambda: _ingest(document, x_lexora_session, store, settings)
+        )
+        timings = timings.model_copy(
+            update={
+                "extract_ms": (extracted_at - started) * 1000,
+                "total_ms": (time.perf_counter() - started) * 1000,
+            }
         )
     except ExtractionError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
@@ -178,7 +213,7 @@ async def upload(
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
 
     response.headers[SESSION_HEADER] = session.session_id
-    return _view(session, settings)
+    return _view(session, settings).model_copy(update={"timings": timings})
 
 
 @router.post("/link", response_model=WorkspaceView, status_code=status.HTTP_201_CREATED)
@@ -191,9 +226,17 @@ async def link(
     """Fetch a public URL and index it. Private addresses are refused — see extract.py."""
     store = get_store(settings)
     try:
+        started = time.perf_counter()
         document = await anyio.to_thread.run_sync(lambda: fetch_url(body.url, settings))
-        session, _ = await anyio.to_thread.run_sync(
+        extracted_at = time.perf_counter()
+        session, _, timings = await anyio.to_thread.run_sync(
             lambda: _ingest(document, x_lexora_session, store, settings)
+        )
+        timings = timings.model_copy(
+            update={
+                "extract_ms": (extracted_at - started) * 1000,
+                "total_ms": (time.perf_counter() - started) * 1000,
+            }
         )
     except ExtractionError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
@@ -201,7 +244,7 @@ async def link(
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
 
     response.headers[SESSION_HEADER] = session.session_id
-    return _view(session, settings)
+    return _view(session, settings).model_copy(update={"timings": timings})
 
 
 @router.delete("/{doc_id}", response_model=WorkspaceView)
